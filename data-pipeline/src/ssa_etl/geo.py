@@ -11,6 +11,35 @@ from .sources.tse import csv_files
 LAT_BOUNDS = (-14.0, -12.0)
 LON_BOUNDS = (-39.0, -37.0)
 
+# Nomes usados pelo cadastro do TSE que não existem, com esse nome, na divisão
+# oficial de bairros de Salvador. O primeiro bloco é o mapeamento validado com
+# os endereços dos locais; os dois primeiros ficam marcados como "média".
+TSE_BAIRRO_ALIASES = {
+    "ARMAÇÃO": "Jardim Armação",
+    "BOM JESUS DOS PASSOS": "Ilha de Bom Jesus dos Passos",
+    "PARQUE SÃO CRISTÓVÃO": "São Cristóvão",
+    "CAMPINAS": "Campinas de Pirajá",
+    "CAMPINAS DE BROTAS": "Brotas",
+    "SÃO TOMÉ DE PARIPE": "São Tomé",
+    "ALTO DE COUTOS": "Coutos",
+    "VASCO DA GAMA": "Acupe",
+    "BONOCÔ": "Brotas",
+    "NOVA BRASÍLIA DE ITAPUÃ": "Itapuã",
+    "NOVA BRASÍLIA DE VALÉRIA": "Moradas da Lagoa",
+    "TUBARÃO": "Paripe",
+    "PARAMANA": "Ilha dos Frades/Ilha de Santo Antônio",
+}
+
+# Nomes que existem nos dois cadastros, mas cujo ponto geocodificado cai no
+# bairro vizinho. Nesses casos o nome do TSE é mais confiável que a coordenada.
+TSE_BAIRRO_NOME_PRIORITARIO = {
+    "BOCA DA MATA",
+    "CASSANGE",
+    "CHAME-CHAME",
+    "MASSARANDUBA",
+    "RETIRO",
+}
+
 LOCAIS_COLS = [
     "SG_UF",
     "CD_MUNICIPIO",
@@ -83,25 +112,63 @@ def load_locais(bairros: gpd.GeoDataFrame) -> tuple[pd.DataFrame, dict]:
     )
 
     official = {norm(nome): int(bairro_id) for bairro_id, nome in zip(bairros["bairro_id"], bairros["nome"])}
+    alias: dict[str, int] = {}
+    for tse_nome, oficial_nome in TSE_BAIRRO_ALIASES.items():
+        chave = norm(oficial_nome)
+        if chave not in official:
+            raise ValueError(f"Bairro oficial do alias não encontrado: {oficial_nome!r}")
+        alias[norm(tse_nome)] = official[chave]
+
     sections = sal[["NR_ZONA", "NR_SECAO", "NR_LOCAL_VOTACAO", "NM_BAIRRO"]].copy()
     sections = sections.merge(spatial, on=["NR_ZONA", "NR_SECAO"], how="left")
     sections["bairro_nome"] = sections["NM_BAIRRO"].map(norm).map(official)
-    sections["bairro_id"] = sections["bairro_espacial"].fillna(sections["bairro_nome"]).astype("Int64")
+    sections["bairro_alias"] = sections["NM_BAIRRO"].map(norm).map(alias)
+    nomes_prioritarios = {norm(nome) for nome in TSE_BAIRRO_NOME_PRIORITARIO}
+    force_name = sections["NM_BAIRRO"].map(norm).isin(nomes_prioritarios)
+
+    # Ordem: aliases curados > nome exato prioritário > coordenada > nome exato.
+    # Para os nomes prioritários, o ponto geocodificado cai no bairro vizinho;
+    # para os aliases, o nome do TSE é uma localidade que não existe no GeoJSON.
+    sections["bairro_id"] = sections["bairro_alias"].copy()
+    sections.loc[force_name & sections["bairro_nome"].notna(), "bairro_id"] = sections.loc[
+        force_name & sections["bairro_nome"].notna(), "bairro_nome"
+    ]
+    sections["bairro_id"] = (
+        sections["bairro_id"]
+        .fillna(sections["bairro_espacial"])
+        .fillna(sections["bairro_nome"])
+        .astype("Int64")
+    )
 
     sections["origem"] = None
-    sections.loc[sections["bairro_espacial"].notna(), "origem"] = "coordenada"
+    sections.loc[sections["bairro_alias"].notna(), "origem"] = "alias"
     sections.loc[
-        sections["bairro_espacial"].isna() & sections["bairro_nome"].notna(), "origem"
+        force_name & sections["bairro_nome"].notna(), "origem"
+    ] = "nome_prioritario"
+    sections.loc[
+        sections["origem"].isna() & sections["bairro_espacial"].notna(), "origem"
+    ] = "coordenada"
+    sections.loc[
+        sections["origem"].isna() & sections["bairro_nome"].notna(), "origem"
     ] = "nome"
+
+    official_by_id = {
+        int(bairro_id): nome for bairro_id, nome in zip(bairros["bairro_id"], bairros["nome"])
+    }
+    sections["bairro_oficial"] = sections["bairro_id"].map(official_by_id)
 
     stats = {
         "secoes_total": int(len(sal)),
         "secoes_com_coordenada": int(valid.sum()),
         "secoes_mapeadas": int(sections["bairro_id"].notna().sum()),
+        "secoes_por_alias": int((sections["origem"] == "alias").sum()),
+        "secoes_por_nome_prioritario": int(
+            (sections["origem"] == "nome_prioritario").sum()
+        ),
         "secoes_por_coordenada": int((sections["origem"] == "coordenada").sum()),
         "secoes_por_nome": int((sections["origem"] == "nome").sum()),
         "secoes_sem_bairro": int(sections["bairro_id"].isna().sum()),
-        "locais_distintos": int(sal["NR_LOCAL_VOTACAO"].nunique()),
+        "locais_distintos": int(sal.groupby(["NR_ZONA", "NR_LOCAL_VOTACAO"]).ngroups),
     }
     return sections, stats
 
@@ -123,6 +190,14 @@ def load_candidatos() -> pd.DataFrame:
         "SG_PARTIDO",
         "NM_PARTIDO",
         "NR_PARTIDO",
+        "TP_AGREMIACAO",
+        "NR_FEDERACAO",
+        "SG_FEDERACAO",
+        "NM_FEDERACAO",
+        "DS_COMPOSICAO_FEDERACAO",
+        "SQ_COLIGACAO",
+        "NM_COLIGACAO",
+        "DS_COMPOSICAO_COLIGACAO",
         "DS_SITUACAO_CANDIDATURA",
         "DS_SIT_TOT_TURNO",
     ]

@@ -98,6 +98,160 @@ body {
   outline-offset: 1px;
 }
 
+.search-select {
+  position: relative;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.ss-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ss-trigger:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+}
+
+.ss-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ss-value.vazio {
+  color: #94a3b8;
+}
+
+.ss-caret {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.ss-swatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+}
+
+.ss-badge {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.ss-badge-eleito {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ss-badge-coeficiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ss-badge-nao {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ss-badge-alerta {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ss-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+}
+
+.ss-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.ss-list {
+  max-height: 250px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.ss-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.ss-option.highlight {
+  background: #eff6ff;
+}
+
+.ss-option.selected {
+  background: #dbeafe;
+  font-weight: 600;
+}
+
+.ss-option-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ss-empty {
+  padding: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+}
+
 .candidato {
   display: flex;
   align-items: center;
@@ -132,6 +286,51 @@ body {
 
 .candidato-info span {
   font-size: 11.5px;
+  color: #64748b;
+}
+
+.candidato-info .nota-resumo {
+  margin-top: 2px;
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: #94a3b8;
+}
+
+.status-chip {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+}
+
+.status-eleito {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-coeficiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-nao {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.status-alerta {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.candidato-info .status-detalhe {
+  margin-top: 3px;
+  font-size: 10.5px;
+  line-height: 1.35;
   color: #64748b;
 }
 
@@ -189,6 +388,13 @@ body {
   margin-top: 8px;
   font-size: 11px;
   color: #475569;
+}
+
+.legenda-nota {
+  margin-top: 6px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: #94a3b8;
 }
 
 .hatch {
