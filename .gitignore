@@ -12,6 +12,7 @@ graphify-out/cache/
 node_modules/
 web/dist/
 web/.vite/
+.wrangler/
 
 # Segredos / ambiente
 .env
