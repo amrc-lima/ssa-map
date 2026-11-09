@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { LngLatBounds, Map as MapLibreMap, NavigationControl, Popup } from 'maplibre-gl'
+import {
+  LngLatBounds,
+  Map as MapLibreMap,
+  NavigationControl,
+  Popup,
+  setWorkerUrl,
+} from 'maplibre-gl'
 import type { GeoJSONSource, MapLayerMouseEvent } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './App.css'
+
+setWorkerUrl(workerUrl)
 
 const BASE = import.meta.env.BASE_URL
 
@@ -180,6 +189,7 @@ function App() {
       attributionControl: { compact: true },
     })
     mapRef.current = map
+    ;(window as unknown as { __map?: MapLibreMap }).__map = map
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
 
     map.on('load', () => {
