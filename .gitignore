@@ -1,0 +1,28 @@
+# Python
+data-pipeline/.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+data-pipeline/cache/
+*.egg-info/
+graphify-out/cache/
+
+# Node
+node_modules/
+web/dist/
+web/.vite/
+
+# Segredos / ambiente
+.env
+.env.*
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Artefatos de referência pesados (não versionar)
+mapas/mapa2/*_files/
+Workers & Pages _ Cloudflare.htm
+Workers & Pages _ Cloudflare_files/
