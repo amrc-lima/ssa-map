@@ -1,0 +1,260 @@
+{
+  ".github/workflows/deploy.yml": {
+    "mtime": 1794260001.689354,
+    "seen": 1794260058.3608162,
+    "ast_hash": "34fbf5c53d6079dc7acae66fd3d8551e",
+    "semantic_hash": ""
+  },
+  "data-pipeline/pyproject.toml": {
+    "mtime": 1794259480.7902741,
+    "seen": 1794260058.3608217,
+    "ast_hash": "1228bb2467af8ff8a206e0fccce19d44",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/analyze_agreement.py": {
+    "mtime": 1794259830.0803022,
+    "seen": 1794260058.360824,
+    "ast_hash": "2f8eaf9a2f70cdee78afaa9f15a7571c",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/analyze_coords.py": {
+    "mtime": 1794259797.054872,
+    "seen": 1794260058.3608253,
+    "ast_hash": "79634300168801d291683c108b89abb8",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/analyze_coords2.py": {
+    "mtime": 1794259813.4244828,
+    "seen": 1794260058.3608267,
+    "ast_hash": "4cfaaf0ab6327ee04b1397caf60fe487",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/explore_salvador.py": {
+    "mtime": 1794259706.659312,
+    "seen": 1794260058.3608274,
+    "ast_hash": "9980383952be3b46134cbd44495cea64",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/filter_votacao.py": {
+    "mtime": 1794259724.8047297,
+    "seen": 1794260058.3608284,
+    "ast_hash": "b098ce373f10defcb977076ecbd2464e",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/inspect_headers.py": {
+    "mtime": 1794259681.203015,
+    "seen": 1794260058.360829,
+    "ast_hash": "fc04eaacc5100e566c5826dbf5d23faf",
+    "semantic_hash": ""
+  },
+  "data-pipeline/scripts/inspect_tse.py": {
+    "mtime": 1794259661.3460882,
+    "seen": 1794260058.3608303,
+    "ast_hash": "b3c15d358a8e36ea06cd4ea4f68cf448",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/__init__.py": {
+    "mtime": 1794259480.8120463,
+    "seen": 1794260058.360831,
+    "ast_hash": "25b64a52e4607d2ed116e68b11e974cb",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/build.py": {
+    "mtime": 1794259929.2900577,
+    "seen": 1794260058.360832,
+    "ast_hash": "10dbe3422652d8914b1598a1747b68b9",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/cache.py": {
+    "mtime": 1794259481.4814377,
+    "seen": 1794260058.360833,
+    "ast_hash": "e82feea3f006a845526dfa9a5f1f5a74",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/cli.py": {
+    "mtime": 1794259783.857682,
+    "seen": 1794260058.3608341,
+    "ast_hash": "09b7da90867000e687bef1075fbc46b4",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/config.py": {
+    "mtime": 1794259481.017398,
+    "seen": 1794260058.3608348,
+    "ast_hash": "168589a12185c35281497de72c2982cd",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/geo.py": {
+    "mtime": 1794259857.0633335,
+    "seen": 1794260058.3608358,
+    "ast_hash": "9d79bad509a3e632119021cdeb00cebd",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/sources/__init__.py": {
+    "mtime": 1794259481.5036767,
+    "seen": 1794260058.3608365,
+    "ast_hash": "284dd92bc90996c76013b6556990ccf6",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/sources/bairros.py": {
+    "mtime": 1794259481.5046766,
+    "seen": 1794260058.3608375,
+    "ast_hash": "b03f0a4d850b625f6746edfc16ea325f",
+    "semantic_hash": ""
+  },
+  "data-pipeline/src/ssa_etl/sources/tse.py": {
+    "mtime": 1794259661.3405213,
+    "seen": 1794260058.3608384,
+    "ast_hash": "8f55b8daab238659447dc46975fa7d4e",
+    "semantic_hash": ""
+  },
+  "mapas/mapa2/0.json": {
+    "mtime": 1794256666.5493135,
+    "seen": 1794260058.3608394,
+    "ast_hash": "b1a76351f06a1b4d5c2bfb8135d715b8",
+    "semantic_hash": ""
+  },
+  "mapas/mapa2/FeatureServer.json": {
+    "mtime": 1794256538.8200898,
+    "seen": 1794260058.3608406,
+    "ast_hash": "71a5542dac93ea71189fe2b3ba9face3",
+    "semantic_hash": ""
+  },
+  "mapas/mapa2/layers.json": {
+    "mtime": 1794256648.4257238,
+    "seen": 1794260058.3608413,
+    "ast_hash": "dda9e571cd2c5b42e5d8771bb505aa0d",
+    "semantic_hash": ""
+  },
+  "web/.oxlintrc.json": {
+    "mtime": 1794259486.3365395,
+    "seen": 1794260058.360842,
+    "ast_hash": "029f4905006c1fffd96bc863e2d98d3e",
+    "semantic_hash": ""
+  },
+  "web/package.json": {
+    "mtime": 1794259515.1055493,
+    "seen": 1794260058.3608432,
+    "ast_hash": "c5e661a2b60b35f409dfcde0ca3bd409",
+    "semantic_hash": ""
+  },
+  "web/public/data/candidatos.json": {
+    "mtime": 1794259962.6213646,
+    "seen": 1794260058.3608441,
+    "ast_hash": "10a9139e8fe97333893d559cfe61491c",
+    "semantic_hash": ""
+  },
+  "web/public/data/votos.json": {
+    "mtime": 1794259962.627824,
+    "seen": 1794260058.3608449,
+    "ast_hash": "6c281f8424e846d08d441166345624c7",
+    "semantic_hash": ""
+  },
+  "web/src/App.tsx": {
+    "mtime": 1794259959.4707766,
+    "seen": 1794260058.3608458,
+    "ast_hash": "d0ab0d23b38afd66a9855b1d8812a717",
+    "semantic_hash": ""
+  },
+  "web/src/main.tsx": {
+    "mtime": 1794259486.509683,
+    "seen": 1794260058.3608465,
+    "ast_hash": "787e5a07efeb2bf6209d5937195f2f68",
+    "semantic_hash": ""
+  },
+  "web/tsconfig.app.json": {
+    "mtime": 1794259486.356784,
+    "seen": 1794260058.3608475,
+    "ast_hash": "5f2dafd737dea8a4ddcbb10f5113ac5a",
+    "semantic_hash": ""
+  },
+  "web/tsconfig.json": {
+    "mtime": 1794259486.3616505,
+    "seen": 1794260058.3608482,
+    "ast_hash": "a3d39fa780ebff65444de257f291ce6c",
+    "semantic_hash": ""
+  },
+  "web/tsconfig.node.json": {
+    "mtime": 1794259486.3659885,
+    "seen": 1794260058.360849,
+    "ast_hash": "f9cb81ddcea69ffdab672fc8c48dca66",
+    "semantic_hash": ""
+  },
+  "web/vite.config.ts": {
+    "mtime": 1794259486.5010955,
+    "seen": 1794260058.3608496,
+    "ast_hash": "5d54447744c19ccd28638a5c668d15ea",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1794256251.4999924,
+    "seen": 1794260058.3608503,
+    "ast_hash": "f36539ecc9af68f33ebd72770ce4a19e",
+    "semantic_hash": ""
+  },
+  "docs/fontes-tse.md": {
+    "mtime": 1794259353.4843433,
+    "seen": 1794260058.3608513,
+    "ast_hash": "265400a3aaf3df1233e787ea9251a6be",
+    "semantic_hash": ""
+  },
+  "election-data.md": {
+    "mtime": 1794257502.092376,
+    "seen": 1794260058.3608522,
+    "ast_hash": "9228a3691d2826aa629b24497da58efe",
+    "semantic_hash": ""
+  },
+  "mapas/gpt-sugestao-2.md": {
+    "mtime": 1794256860.7189336,
+    "seen": 1794260058.360853,
+    "ast_hash": "a194d89bfc2761fae34d1879e4f14ab1",
+    "semantic_hash": ""
+  },
+  "mapas/gpt-sugestao.md": {
+    "mtime": 1794256798.622564,
+    "seen": 1794260058.3608534,
+    "ast_hash": "4c5727d47b9ca5484f05fd7cd90bd80a",
+    "semantic_hash": ""
+  },
+  "plano.md": {
+    "mtime": 1794257869.2592857,
+    "seen": 1794260058.3608546,
+    "ast_hash": "475b1f334cc7fc3f7c94b65799a70a34",
+    "semantic_hash": ""
+  },
+  "proj.md": {
+    "mtime": 1794256345.1763997,
+    "seen": 1794260058.3608553,
+    "ast_hash": "503ef1c5de0b8bdf538b3b46c6941b45",
+    "semantic_hash": ""
+  },
+  "web/README.md": {
+    "mtime": 1794259486.3818707,
+    "seen": 1794260058.360856,
+    "ast_hash": "10495bfcc6c568eca4dab6dd5df795d3",
+    "semantic_hash": ""
+  },
+  "web/index.html": {
+    "mtime": 1794259553.4163747,
+    "seen": 1794260058.3608568,
+    "ast_hash": "ebfaa19a29df1a29c7be36f0ee332c4e",
+    "semantic_hash": ""
+  },
+  "web/public/favicon.svg": {
+    "mtime": 1794259486.4272475,
+    "seen": 1794260058.360858,
+    "ast_hash": "7e840862161341271697daa99a40d76b",
+    "semantic_hash": ""
+  },
+  ".opencode/package-lock.json": {
+    "mtime": 1794257530.5535026,
+    "seen": 1794260058.3608587,
+    "ast_hash": "a2c15c8db2109dc6ca96532a50b7c6c4",
+    "semantic_hash": ""
+  },
+  "web/package-lock.json": {
+    "mtime": 1794259515.1621583,
+    "seen": 1794260058.3608594,
+    "ast_hash": "616993a993cfe2d472fcc5a906e33972",
+    "semantic_hash": ""
+  }
+}
