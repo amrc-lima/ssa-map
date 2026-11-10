@@ -48,6 +48,7 @@ type Candidato = {
   eleito: boolean
   suplente: boolean
   eleito_por: string | null
+  foto?: string | null
 }
 
 type Cargo = { id: string; nome: string; candidatos: Candidato[] }
@@ -277,6 +278,7 @@ function Avatar({
   pct,
   title,
   size = 44,
+  foto,
 }: {
   label: string
   fill: string
@@ -284,15 +286,18 @@ function Avatar({
   pct: number
   title: string
   size?: number
+  foto?: string | null
 }) {
   const clamped = Math.max(0, Math.min(1, pct))
+  const [erroFoto, setErroFoto] = useState(false)
+  const src = foto && !erroFoto ? `${BASE}${foto}` : null
   return (
     <span
       className="avatar"
       style={
         {
           '--ring': ring,
-          '--fill': fill,
+          '--fill': src ? 'transparent' : fill,
           '--pct': `${Math.round(clamped * 100)}%`,
           width: size,
           height: size,
@@ -300,7 +305,13 @@ function Avatar({
       }
       title={title}
     >
-      <span className="avatar-inner">{label}</span>
+      <span className="avatar-inner">
+        {src ? (
+          <img src={src} alt={label} loading="lazy" onError={() => setErroFoto(true)} />
+        ) : (
+          label
+        )}
+      </span>
     </span>
   )
 }
@@ -1380,6 +1391,7 @@ function App() {
                             : statusRingColor(candidato)
                         }
                         pct={candidatoPct}
+                        foto={candidato.foto}
                         title={
                           candidato.cargo_id === '11'
                             ? `${pctText(candidatoPct)} dos votos para prefeito`
@@ -1500,6 +1512,7 @@ function App() {
                             fill={partyColor(item.candidato.partido, item.candidato.cor)}
                             ring={partyColor(item.candidato.partido, item.candidato.cor)}
                             pct={1}
+                            foto={item.candidato.foto}
                             title={item.candidato.status_label}
                             size={40}
                           />
@@ -1531,6 +1544,7 @@ function App() {
                                 fill={partyColor(top.candidato.partido, top.candidato.cor)}
                                 ring={partyColor(top.candidato.partido, top.candidato.cor)}
                                 pct={1}
+                                foto={top.candidato.foto}
                                 title={top.candidato.status_label}
                                 size={36}
                               />
@@ -1573,7 +1587,7 @@ function App() {
                   {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribuídos a um bairro. {nf.format(meta.bairros)} bairros oficiais e {nf.format(meta.candidatos)} candidatos. Percentuais usam votos válidos do cargo no bairro (candidatos + legenda no vereador).
                 </p>
                 <p>
-                  Avatares usam iniciais (fotos oficiais não carregadas). Modos: relativa (votos absolutos do selecionado),
+                  Avatares exibem foto oficial do TSE quando disponível (com iniciais como alternativa). Modos: relativa (votos absolutos do selecionado),
                   rankeada (percentual próprio do selecionado por bairro) e global (percentual comparado ao maior do cargo).
                   Clique em um bairro para ver o ranking completo.
                 </p>
