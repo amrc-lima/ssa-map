@@ -321,6 +321,9 @@ function App() {
   const [cargoId, setCargoId] = useState('')
   const [partidoId, setPartidoId] = useState('')
   const [candidatoId, setCandidatoId] = useState('')
+  const [selecoesPorCargo, setSelecoesPorCargo] = useState<
+    Record<string, { partidoId: string; candidatoId: string }>
+  >({})
   const [modo, setModo] = useState<Modo>('relativo')
   const [visao, setVisao] = useState<Visao>('mapa')
   const [campeaoCargo, setCampeaoCargo] = useState<CampeaoCargo>('13')
@@ -825,9 +828,9 @@ function App() {
         setCandDoc(candidatos)
         setVotosDoc(votos)
         const firstCargo = candidatos.cargos[0]
-        setCargoId(firstCargo.id)
+        setCargoId(firstCargo?.id ?? '')
         setPartidoId('')
-        setCandidatoId(firstCargo.candidatos[0]?.id ?? '')
+        setCandidatoId('')
       })
       .catch((error) => {
         if (alive) setErro((error as Error).message)
@@ -1146,16 +1149,27 @@ function App() {
     maxTopPctCampeao,
   ])
 
+  const lembrarSelecaoCargo = (id: string, nextPartidoId: string, nextCandidatoId: string) => {
+    setSelecoesPorCargo((prev) => ({
+      ...prev,
+      [id]: { partidoId: nextPartidoId, candidatoId: nextCandidatoId },
+    }))
+  }
+
   const trocarCargo = (id: string) => {
+    if (cargoId) {
+      lembrarSelecaoCargo(cargoId, partidoId, candidatoId)
+    }
+    const salvo = selecoesPorCargo[id] ?? { partidoId: '', candidatoId: '' }
     setCargoId(id)
-    setPartidoId('')
-    const alvo = candDoc?.cargos.find((item) => item.id === id)
-    setCandidatoId(alvo?.candidatos[0]?.id ?? '')
+    setPartidoId(salvo.partidoId)
+    setCandidatoId(salvo.candidatoId)
   }
 
   const trocarPartido = (sigla: string) => {
     setPartidoId(sigla)
     setCandidatoId('')
+    if (cargoId) lembrarSelecaoCargo(cargoId, sigla, '')
     if (!sigla && modo === 'rankeada') setModo('relativo')
   }
 
@@ -1326,9 +1340,14 @@ function App() {
                     onChange={(value) => {
                       setCandidatoId(value)
                       if (!value) {
-                        setPartidoId('')
+                        if (cargoId) lembrarSelecaoCargo(cargoId, partidoId, '')
                         if (modo === 'rankeada') setModo('relativo')
+                        return
                       }
+                      const item = cargo?.candidatos.find((candidatoItem) => candidatoItem.id === value)
+                      const nextPartido = item?.partido ?? partidoId
+                      if (item && item.partido !== partidoId) setPartidoId(item.partido)
+                      if (cargoId) lembrarSelecaoCargo(cargoId, nextPartido, value)
                     }}
                     emptyLabel="Total do cargo"
                     placeholder="Pesquisar por nome, partido, número ou situação…"
