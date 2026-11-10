@@ -527,11 +527,14 @@ function App() {
 
   const candidatosDisponiveis = useMemo(() => {
     if (!cargo) return []
-    const lista = partidoId ? cargo.candidatos.filter((item) => item.partido === partidoId) : cargo.candidatos
+    const lista =
+      cargoId !== '11' && partidoId
+        ? cargo.candidatos.filter((item) => item.partido === partidoId)
+        : cargo.candidatos
     return [...lista].sort(
       (a, b) => b.votos_total - a.votos_total || a.nome_urna.localeCompare(b.nome_urna, 'pt-BR'),
     )
-  }, [cargo, partidoId])
+  }, [cargo, cargoId, partidoId])
 
   const agregados = useMemo(() => {
     if (!cargo) return null
@@ -1350,13 +1353,20 @@ function App() {
                     onChange={(value) => {
                       setCandidatoId(value)
                       if (!value) {
-                        if (cargoId) lembrarSelecaoCargo(cargoId, partidoId, '')
+                        const nextPartido = cargoId === '11' ? '' : partidoId
+                        if (cargoId === '11') setPartidoId('')
+                        if (cargoId) lembrarSelecaoCargo(cargoId, nextPartido, '')
                         if (modo === 'rankeada') setModo('relativo')
                         return
                       }
                       const item = cargo?.candidatos.find((candidatoItem) => candidatoItem.id === value)
-                      const nextPartido = item?.partido ?? partidoId
-                      if (item && item.partido !== partidoId) setPartidoId(item.partido)
+                      const nextPartido =
+                        cargoId === '11' ? '' : (item?.partido ?? partidoId)
+                      if (cargoId !== '11' && item && item.partido !== partidoId) {
+                        setPartidoId(item.partido)
+                      } else if (cargoId === '11') {
+                        setPartidoId('')
+                      }
                       if (cargoId) lembrarSelecaoCargo(cargoId, nextPartido, value)
                     }}
                     emptyLabel="Total do cargo"
