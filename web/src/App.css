@@ -135,7 +135,15 @@ select {
 }
 
 .panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
+}
+
+.panel-title {
+  min-width: 0;
 }
 
 .eyebrow {
@@ -161,6 +169,44 @@ select {
   font-size: 13px;
   font-weight: 400;
   color: var(--muted);
+}
+
+.panel-toggle {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.panel-toggle:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.panel.oculto {
+  max-height: none;
+  overflow: visible;
+  padding-bottom: 14px;
+}
+
+.panel.oculto .panel-header {
+  margin-bottom: 0;
+}
+
+.panel.oculto h1 {
+  font-size: 24px;
+}
+
+.panel.oculto .eyebrow {
+  margin-bottom: 2px;
 }
 
 .views,
@@ -901,6 +947,18 @@ select {
     max-height: 46vh;
     padding: 14px 14px 12px;
     border-radius: 18px;
+  }
+
+  .panel.oculto {
+    right: auto;
+    width: fit-content;
+    max-width: calc(100vw - 20px);
+    max-height: none;
+    padding: 10px 12px;
+  }
+
+  .panel.oculto h1 {
+    font-size: 20px;
   }
 
   .map-shell.com-ranking .panel {

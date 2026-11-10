@@ -7,9 +7,9 @@
   "5": "pathlib",
   "6": "App.tsx",
   "7": "compilerOptions",
-  "8": "Cache",
+  "8": "build.py",
   "9": "Fontes de dados oficiais — Fase 0 (validado)",
-  "10": "App.backup.tsx",
+  "10": "Cache",
   "11": ".oxlintrc.json",
   "12": "load_wm2m.php",
   "13": "React + TypeScript + Vite",
@@ -51,5 +51,6 @@
   "49": "load_frP6.php",
   "50": "load_RXn8.php",
   "51": "load_U3LG.php",
-  "52": "load_D4Ut.php"
+  "52": "load_D4Ut.php",
+  "53": "6. Pipeline ETL (etapas)"
 }

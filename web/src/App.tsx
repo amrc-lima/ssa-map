@@ -329,6 +329,7 @@ function App() {
   const [bairroSelecionado, setBairroSelecionado] = useState<number | null>(null)
   const [buscaBairro, setBuscaBairro] = useState('')
   const [buscaBairroAberta, setBuscaBairroAberta] = useState(false)
+  const [painelOculto, setPainelOculto] = useState(false)
 
   const cargo = useMemo(
     () => candDoc?.cargos.find((item) => item.id === cargoId) ?? null,
@@ -1154,7 +1155,9 @@ function App() {
   }
 
   return (
-    <div className={`map-shell${bairroSelecionado !== null ? ' com-ranking' : ''} ${visao}`}>
+    <div
+      className={`map-shell${bairroSelecionado !== null ? ' com-ranking' : ''}${painelOculto ? ' panel-hidden' : ''} ${visao}`}
+    >
       <div ref={containerRef} className="map" />
 
       <div className="bairro-search" ref={searchRef}>
@@ -1182,292 +1185,306 @@ function App() {
         )}
       </div>
 
-      <section className="panel">
+      <section className={`panel${painelOculto ? ' oculto' : ''}`}>
         <header className="panel-header">
-          <div>
+          <div className="panel-title">
             <p className="eyebrow">Salvador · Eleições 2024</p>
             <h1>Mapa Eleitoral</h1>
-            <p className="sub">1º turno · dados oficiais do TSE</p>
+            {!painelOculto && <p className="sub">1º turno · dados oficiais do TSE</p>}
           </div>
+          <button
+            type="button"
+            className="panel-toggle"
+            onClick={() => setPainelOculto((v) => !v)}
+            title={painelOculto ? 'Mostrar painel' : 'Minimizar painel'}
+            aria-label={painelOculto ? 'Mostrar painel' : 'Minimizar painel'}
+            aria-expanded={!painelOculto}
+          >
+            {painelOculto ? 'Mostrar' : 'Minimizar'}
+          </button>
         </header>
 
-        <div className="views">
-          <button
-            type="button"
-            className={visao === 'mapa' ? 'ativo' : ''}
-            onClick={() => setVisao('mapa')}
-          >
-            Mapa eleitoral
-          </button>
-          <button
-            type="button"
-            className={visao === 'campeoes' ? 'ativo' : ''}
-            onClick={() => setVisao('campeoes')}
-          >
-            Campeões
-          </button>
-        </div>
-
-        {erro && <p className="erro">Erro: {erro}</p>}
-
-        {visao === 'mapa' ? (
+        {!painelOculto && (
           <>
-            <div className="controls">
-              <label className="cargo-field">
-                <span>Cargo</span>
-                <select value={cargoId} onChange={(event) => trocarCargo(event.target.value)}>
-                  {candDoc?.cargos.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.nome}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <SearchSelect
-                label="Partido"
-                value={partidoId}
-                options={partyOptions}
-                onChange={trocarPartido}
-                emptyLabel="--"
-                placeholder="Pesquisar por sigla, nome ou número…"
-              />
-
-              <SearchSelect
-                label="Candidato"
-                value={candidatoId}
-                options={candidateOptions}
-                onChange={(value) => {
-                  setCandidatoId(value)
-                  if (!value) {
-                    setPartidoId('')
-                    if (modo === 'rankeada') setModo('relativo')
-                  }
-                }}
-                emptyLabel="Total do cargo"
-                placeholder="Pesquisar por nome, partido, número ou situação…"
-              />
-            </div>
-
-            {resumo && (
-              <div className="candidato">
-                {candidato ? (
-                  <Avatar
-                    label={initials(candidato.nome_urna)}
-                    fill={partyColor(candidato.partido, candidato.cor)}
-                    ring={
-                      candidato.cargo_id === '11'
-                        ? partyColor(candidato.partido, candidato.cor)
-                        : statusRingColor(candidato)
-                    }
-                    pct={candidatoPct}
-                    title={
-                      candidato.cargo_id === '11'
-                        ? `${pctText(candidatoPct)} dos votos para prefeito`
-                        : ringTitle(candidato)
-                    }
-                  />
-                ) : partido ? (
-                  <Avatar
-                    label={partido.sigla}
-                    fill={partido.cor}
-                    ring={partido.cor}
-                    pct={1}
-                    title={`${partido.sigla} — ${partido.nome}`}
-                  />
-                ) : (
-                  <span className="swatch" style={{ background: resumo.cor }} />
-                )}
-                <div className="candidato-info">
-                  <strong>{resumo.titulo}</strong>
-                  <span>{resumo.linha}</span>
-                  {resumo.status && (
-                    <span className={`status-chip status-${resumo.statusTone ?? 'nao'}`}>{resumo.status}</span>
-                  )}
-                  {resumo.statusDetalhe && <span className="status-detalhe">{resumo.statusDetalhe}</span>}
-                  {resumo.nota && <span className="nota-resumo">{resumo.nota}</span>}
-                </div>
-              </div>
-            )}
-
-            <div className="modos">
-              <button type="button" className={modo === 'relativo' ? 'ativo' : ''} onClick={() => setModo('relativo')}>
-                Relativa ao selecionado
+            <div className="views">
+              <button
+                type="button"
+                className={visao === 'mapa' ? 'ativo' : ''}
+                onClick={() => setVisao('mapa')}
+              >
+                Mapa eleitoral
               </button>
               <button
                 type="button"
-                className={modo === 'rankeada' ? 'ativo' : ''}
-                onClick={() => setModo('rankeada')}
-                disabled={!selecao || selecao.tipo === 'total'}
-                title="Disponível para candidato ou partido"
+                className={visao === 'campeoes' ? 'ativo' : ''}
+                onClick={() => setVisao('campeoes')}
               >
-                Relativa rankeada
-              </button>
-              <button type="button" className={modo === 'global' ? 'ativo' : ''} onClick={() => setModo('global')}>
-                Global
+                Campeões
               </button>
             </div>
 
-            <div className="legenda">
-              <div className="gradiente" style={{ '--cor': selecao?.cor ?? '#2563eb' } as CSSProperties} />
-              <div className="legenda-texto">
-                <span>{legendaInicio}</span>
-                <span>{legendaFim}</span>
-              </div>
-              <div className="legenda-zero">
-                <span className="hatch" />
-                <span>{selecao?.tipo === 'total' ? 'sem local de votação' : 'sem votos para a seleção'}</span>
-              </div>
-              <div className="legenda-nota">{escalaNota}</div>
-            </div>
-          </>
-        ) : (
-          <div className="campeoes-view">
-            <div className="subtabs">
-              <button type="button" className={campeaoCargo === '11' ? 'ativo' : ''} onClick={() => setCampeaoCargo('11')}>
-                Prefeitos
-              </button>
-              <button type="button" className={campeaoCargo === '13' ? 'ativo' : ''} onClick={() => setCampeaoCargo('13')}>
-                Vereadores
-              </button>
-            </div>
+            {erro && <p className="erro">Erro: {erro}</p>}
 
-            <div className="subtabs secondary">
-              <button type="button" className={campeaoAba === 'candidatos' ? 'ativo' : ''} onClick={() => setCampeaoAba('candidatos')}>
-                Candidatos
-              </button>
-              <button type="button" className={campeaoAba === 'bairros' ? 'ativo' : ''} onClick={() => setCampeaoAba('bairros')}>
-                Bairros
-              </button>
-            </div>
+            {visao === 'mapa' ? (
+              <>
+                <div className="controls">
+                  <label className="cargo-field">
+                    <span>Cargo</span>
+                    <select value={cargoId} onChange={(event) => trocarCargo(event.target.value)}>
+                      {candDoc?.cargos.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-            <p className="view-intro">
-              Campeões por bairro: candidato mais votado no cargo selecionado. A cor indica o partido e a opacidade o percentual.
-            </p>
+                  <SearchSelect
+                    label="Partido"
+                    value={partidoId}
+                    options={partyOptions}
+                    onChange={trocarPartido}
+                    emptyLabel="--"
+                    placeholder="Pesquisar por sigla, nome ou número…"
+                  />
 
-            <div className="legenda">
-              <div className="legenda-nota">Escala de opacidade: maior percentual entre os bairros ({pctText(maxTopPctCampeao)}).</div>
-              <div className="legenda-zero">
-                <span className="hatch" />
-                <span>sem local de votação</span>
-              </div>
-              <div className="top-partidos">
-                {topPartidosCampeao.map((item) => (
-                  <span key={item.sigla}>
-                    <i style={{ background: item.cor }} />
-                    {item.sigla} <b>{item.bairros}</b>
-                  </span>
-                ))}
-              </div>
-            </div>
+                  <SearchSelect
+                    label="Candidato"
+                    value={candidatoId}
+                    options={candidateOptions}
+                    onChange={(value) => {
+                      setCandidatoId(value)
+                      if (!value) {
+                        setPartidoId('')
+                        if (modo === 'rankeada') setModo('relativo')
+                      }
+                    }}
+                    emptyLabel="Total do cargo"
+                    placeholder="Pesquisar por nome, partido, número ou situação…"
+                  />
+                </div>
 
-            <label className="filtro-field">
-              <span>Filtrar</span>
-              <input
-                className="filtro"
-                value={filtroCampeoes}
-                onChange={(event) => setFiltroCampeoes(event.target.value)}
-                placeholder={campeaoAba === 'candidatos' ? 'Candidato, partido ou bairro…' : 'Bairro ou campeão…'}
-              />
-            </label>
-
-            {campeaoAba === 'candidatos' ? (
-              <ul className="lista-campeoes candidatos">
-                {campeoesCandidatosFiltrados.map((item) => (
-                  <li key={item.candidato.id}>
-                    <div className="campeao-candidato">
+                {resumo && (
+                  <div className="candidato">
+                    {candidato ? (
                       <Avatar
-                        label={initials(item.candidato.nome_urna)}
-                        fill={partyColor(item.candidato.partido, item.candidato.cor)}
-                        ring={partyColor(item.candidato.partido, item.candidato.cor)}
-                        pct={1}
-                        title={item.candidato.status_label}
-                        size={40}
+                        label={initials(candidato.nome_urna)}
+                        fill={partyColor(candidato.partido, candidato.cor)}
+                        ring={
+                          candidato.cargo_id === '11'
+                            ? partyColor(candidato.partido, candidato.cor)
+                            : statusRingColor(candidato)
+                        }
+                        pct={candidatoPct}
+                        title={
+                          candidato.cargo_id === '11'
+                            ? `${pctText(candidatoPct)} dos votos para prefeito`
+                            : ringTitle(candidato)
+                        }
                       />
-                      <div className="lista-texto">
-                        <strong>
-                          {item.candidato.nome_urna} · {item.candidato.partido}
-                        </strong>
-                        <span>
-                          Campeão em {item.bairros} bairro{item.bairros === 1 ? '' : 's'}
-                          {item.bairrosNomes.length
-                            ? `: ${item.bairrosNomes.join(', ')}${item.bairros > item.bairrosNomes.length ? '…' : ''}`
-                            : ''}
-                        </span>
-                      </div>
+                    ) : partido ? (
+                      <Avatar
+                        label={partido.sigla}
+                        fill={partido.cor}
+                        ring={partido.cor}
+                        pct={1}
+                        title={`${partido.sigla} — ${partido.nome}`}
+                      />
+                    ) : (
+                      <span className="swatch" style={{ background: resumo.cor }} />
+                    )}
+                    <div className="candidato-info">
+                      <strong>{resumo.titulo}</strong>
+                      <span>{resumo.linha}</span>
+                      {resumo.status && (
+                        <span className={`status-chip status-${resumo.statusTone ?? 'nao'}`}>{resumo.status}</span>
+                      )}
+                      {resumo.statusDetalhe && <span className="status-detalhe">{resumo.statusDetalhe}</span>}
+                      {resumo.nota && <span className="nota-resumo">{resumo.nota}</span>}
                     </div>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                )}
+
+                <div className="modos">
+                  <button type="button" className={modo === 'relativo' ? 'ativo' : ''} onClick={() => setModo('relativo')}>
+                    Relativa ao selecionado
+                  </button>
+                  <button
+                    type="button"
+                    className={modo === 'rankeada' ? 'ativo' : ''}
+                    onClick={() => setModo('rankeada')}
+                    disabled={!selecao || selecao.tipo === 'total'}
+                    title="Disponível para candidato ou partido"
+                  >
+                    Relativa rankeada
+                  </button>
+                  <button type="button" className={modo === 'global' ? 'ativo' : ''} onClick={() => setModo('global')}>
+                    Global
+                  </button>
+                </div>
+
+                <div className="legenda">
+                  <div className="gradiente" style={{ '--cor': selecao?.cor ?? '#2563eb' } as CSSProperties} />
+                  <div className="legenda-texto">
+                    <span>{legendaInicio}</span>
+                    <span>{legendaFim}</span>
+                  </div>
+                  <div className="legenda-zero">
+                    <span className="hatch" />
+                    <span>{selecao?.tipo === 'total' ? 'sem local de votação' : 'sem votos para a seleção'}</span>
+                  </div>
+                  <div className="legenda-nota">{escalaNota}</div>
+                </div>
+              </>
             ) : (
-              <ul className="lista-campeoes bairros">
-                {campeoesBairrosFiltrados.map((item) => {
-                  const top = item.top
-                  return (
-                    <li key={item.id}>
-                      <button type="button" onClick={() => focarBairro(item.id)}>
-                        {top ? (
+              <div className="campeoes-view">
+                <div className="subtabs">
+                  <button type="button" className={campeaoCargo === '11' ? 'ativo' : ''} onClick={() => setCampeaoCargo('11')}>
+                    Prefeitos
+                  </button>
+                  <button type="button" className={campeaoCargo === '13' ? 'ativo' : ''} onClick={() => setCampeaoCargo('13')}>
+                    Vereadores
+                  </button>
+                </div>
+
+                <div className="subtabs secondary">
+                  <button type="button" className={campeaoAba === 'candidatos' ? 'ativo' : ''} onClick={() => setCampeaoAba('candidatos')}>
+                    Candidatos
+                  </button>
+                  <button type="button" className={campeaoAba === 'bairros' ? 'ativo' : ''} onClick={() => setCampeaoAba('bairros')}>
+                    Bairros
+                  </button>
+                </div>
+
+                <p className="view-intro">
+                  Campeões por bairro: candidato mais votado no cargo selecionado. A cor indica o partido e a opacidade o percentual.
+                </p>
+
+                <div className="legenda">
+                  <div className="legenda-nota">Escala de opacidade: maior percentual entre os bairros ({pctText(maxTopPctCampeao)}).</div>
+                  <div className="legenda-zero">
+                    <span className="hatch" />
+                    <span>sem local de votação</span>
+                  </div>
+                  <div className="top-partidos">
+                    {topPartidosCampeao.map((item) => (
+                      <span key={item.sigla}>
+                        <i style={{ background: item.cor }} />
+                        {item.sigla} <b>{item.bairros}</b>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <label className="filtro-field">
+                  <span>Filtrar</span>
+                  <input
+                    className="filtro"
+                    value={filtroCampeoes}
+                    onChange={(event) => setFiltroCampeoes(event.target.value)}
+                    placeholder={campeaoAba === 'candidatos' ? 'Candidato, partido ou bairro…' : 'Bairro ou campeão…'}
+                  />
+                </label>
+
+                {campeaoAba === 'candidatos' ? (
+                  <ul className="lista-campeoes candidatos">
+                    {campeoesCandidatosFiltrados.map((item) => (
+                      <li key={item.candidato.id}>
+                        <div className="campeao-candidato">
                           <Avatar
-                            label={initials(top.candidato.nome_urna)}
-                            fill={partyColor(top.candidato.partido, top.candidato.cor)}
-                            ring={partyColor(top.candidato.partido, top.candidato.cor)}
+                            label={initials(item.candidato.nome_urna)}
+                            fill={partyColor(item.candidato.partido, item.candidato.cor)}
+                            ring={partyColor(item.candidato.partido, item.candidato.cor)}
                             pct={1}
-                            title={top.candidato.status_label}
-                            size={36}
+                            title={item.candidato.status_label}
+                            size={40}
                           />
-                        ) : (
-                          <span className="lista-cor vazio" />
-                        )}
-                        <span className="lista-texto">
-                          <strong>{item.nome}</strong>
-                          <span>
-                            {top ? `${top.candidato.nome_urna} · ${top.candidato.partido}` : 'Sem local de votação'}
-                          </span>
-                        </span>
-                        {top && <span className="lista-pct">{pctText(top.pct)}</span>}
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
+                          <div className="lista-texto">
+                            <strong>
+                              {item.candidato.nome_urna} · {item.candidato.partido}
+                            </strong>
+                            <span>
+                              Campeão em {item.bairros} bairro{item.bairros === 1 ? '' : 's'}
+                              {item.bairrosNomes.length
+                                ? `: ${item.bairrosNomes.join(', ')}${item.bairros > item.bairrosNomes.length ? '…' : ''}`
+                                : ''}
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="lista-campeoes bairros">
+                    {campeoesBairrosFiltrados.map((item) => {
+                      const top = item.top
+                      return (
+                        <li key={item.id}>
+                          <button type="button" onClick={() => focarBairro(item.id)}>
+                            {top ? (
+                              <Avatar
+                                label={initials(top.candidato.nome_urna)}
+                                fill={partyColor(top.candidato.partido, top.candidato.cor)}
+                                ring={partyColor(top.candidato.partido, top.candidato.cor)}
+                                pct={1}
+                                title={top.candidato.status_label}
+                                size={36}
+                              />
+                            ) : (
+                              <span className="lista-cor vazio" />
+                            )}
+                            <span className="lista-texto">
+                              <strong>{item.nome}</strong>
+                              <span>
+                                {top ? `${top.candidato.nome_urna} · ${top.candidato.partido}` : 'Sem local de votação'}
+                              </span>
+                            </span>
+                            {top && <span className="lista-pct">{pctText(top.pct)}</span>}
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+
+                <p className="nota-lista">
+                  {campeaoAba === 'candidatos'
+                    ? `${campeoesCandidatosFiltrados.length} campeões`
+                    : `${campeoesBairrosFiltrados.length} de ${campeoesBairros.length} bairros`}
+                </p>
+              </div>
             )}
 
-            <p className="nota-lista">
-              {campeaoAba === 'candidatos'
-                ? `${campeoesCandidatosFiltrados.length} campeões`
-                : `${campeoesBairrosFiltrados.length} de ${campeoesBairros.length} bairros`}
-            </p>
-          </div>
-        )}
-
-        {meta && (
-          <details className="sobre">
-            <summary>Dados e limitações</summary>
-            <p>
-              Votos por <strong>local de votação</strong> (seção), não por residência do eleitor. Bairros sem local de
-              votação atribuído aparecem sem cor no total.
-            </p>
-            <p>
-              {nf.format(meta.secoes_total)} seções: {nf.format(meta.secoes_por_coordenada)} por coordenada; {nf.format(meta.secoes_por_alias ?? 0)} por aliase; {nf.format(meta.secoes_por_nome_prioritario ?? 0)} por nome prioritário; {nf.format(meta.secoes_por_nome)} por nome exato; {nf.format(meta.secoes_sem_bairro)} sem bairro.
-            </p>
-            <p>
-              {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribuídos a um bairro. {nf.format(meta.bairros)} bairros oficiais e {nf.format(meta.candidatos)} candidatos. Percentuais usam votos válidos do cargo no bairro (candidatos + legenda no vereador).
-            </p>
-            <p>
-              Avatares usam iniciais (fotos oficiais não carregadas). Modos: relativa (votos absolutos do selecionado),
-              rankeada (percentual próprio do selecionado por bairro) e global (percentual comparado ao maior do cargo).
-              Clique em um bairro para ver o ranking completo.
-            </p>
-            {meta.coeficiente_eleitoral ? (
-              <p>
-                <strong>Vereador:</strong> {nf.format(meta.cadeiras_vereador ?? 0)} cadeiras, QE {nf.format(meta.coeficiente_eleitoral)}, piso 10% ({nf.format(meta.limite_10_coeficiente ?? 0)}).
-              </p>
-            ) : null}
-            <p className="fonte">
-              Fonte: TSE Dados Abertos (Salvador/BA, 2024, 1º turno) e base territorial oficial (Decreto nº 32.791/2020).
-              `NM_BAIRRO` do TSE mapeado por aliases; coordenadas -1,-1 não geocodificadas.
-            </p>
-          </details>
+            {meta && (
+              <details className="sobre">
+                <summary>Dados e limitações</summary>
+                <p>
+                  Votos por <strong>local de votação</strong> (seção), não por residência do eleitor. Bairros sem local de
+                  votação atribuído aparecem sem cor no total.
+                </p>
+                <p>
+                  {nf.format(meta.secoes_total)} seções: {nf.format(meta.secoes_por_coordenada)} por coordenada; {nf.format(meta.secoes_por_alias ?? 0)} por aliase; {nf.format(meta.secoes_por_nome_prioritario ?? 0)} por nome prioritário; {nf.format(meta.secoes_por_nome)} por nome exato; {nf.format(meta.secoes_sem_bairro)} sem bairro.
+                </p>
+                <p>
+                  {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribuídos a um bairro. {nf.format(meta.bairros)} bairros oficiais e {nf.format(meta.candidatos)} candidatos. Percentuais usam votos válidos do cargo no bairro (candidatos + legenda no vereador).
+                </p>
+                <p>
+                  Avatares usam iniciais (fotos oficiais não carregadas). Modos: relativa (votos absolutos do selecionado),
+                  rankeada (percentual próprio do selecionado por bairro) e global (percentual comparado ao maior do cargo).
+                  Clique em um bairro para ver o ranking completo.
+                </p>
+                {meta.coeficiente_eleitoral ? (
+                  <p>
+                    <strong>Vereador:</strong> {nf.format(meta.cadeiras_vereador ?? 0)} cadeiras, QE {nf.format(meta.coeficiente_eleitoral)}, piso 10% ({nf.format(meta.limite_10_coeficiente ?? 0)}).
+                  </p>
+                ) : null}
+                <p className="fonte">
+                  Fonte: TSE Dados Abertos (Salvador/BA, 2024, 1º turno) e base territorial oficial (Decreto nº 32.791/2020).
+                  `NM_BAIRRO` do TSE mapeado por aliases; coordenadas -1,-1 não geocodificadas.
+                </p>
+              </details>
+            )}
+          </>
         )}
       </section>
 
