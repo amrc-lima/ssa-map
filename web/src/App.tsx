@@ -872,6 +872,8 @@ function App() {
         paint: {
           'fill-color': '#2563eb',
           'fill-opacity': ['get', 'opacidade'],
+          'fill-color-transition': { duration: 450, delay: 0 },
+          'fill-opacity-transition': { duration: 450, delay: 0 },
         },
       })
       map.addLayer({
@@ -879,27 +881,46 @@ function App() {
         type: 'fill',
         source: 'bairros',
         filter: ['==', ['get', 'votos'], 0],
-        paint: { 'fill-pattern': 'hatch', 'fill-opacity': 0.55 },
+        paint: {
+          'fill-pattern': 'hatch',
+          'fill-opacity': 0.55,
+          'fill-opacity-transition': { duration: 450, delay: 0 },
+        },
       })
       map.addLayer({
         id: 'bairros-line',
         type: 'line',
         source: 'bairros',
-        paint: { 'line-color': '#1e293b', 'line-width': 0.7, 'line-opacity': 0.7 },
+        paint: {
+          'line-color': '#1e293b',
+          'line-width': 0.7,
+          'line-opacity': 0.7,
+          'line-color-transition': { duration: 300, delay: 0 },
+        },
       })
       map.addLayer({
         id: 'bairros-selected-halo',
         type: 'line',
         source: 'bairros',
         filter: ['==', ['get', 'id'], -1],
-        paint: { 'line-color': '#fff', 'line-width': 7, 'line-opacity': 0.9 },
+        paint: {
+          'line-color': '#fff',
+          'line-width': 7,
+          'line-opacity': 0.9,
+          'line-opacity-transition': { duration: 200, delay: 0 },
+        },
       })
       map.addLayer({
         id: 'bairros-selected',
         type: 'line',
         source: 'bairros',
         filter: ['==', ['get', 'id'], -1],
-        paint: { 'line-color': '#f97316', 'line-width': 3.5, 'line-opacity': 1 },
+        paint: {
+          'line-color': '#f97316',
+          'line-width': 3.5,
+          'line-opacity': 1,
+          'line-opacity-transition': { duration: 200, delay: 0 },
+        },
       })
 
       map.on('click', (event: MapLayerMouseEvent) => {
