@@ -706,13 +706,18 @@ function App() {
 
     const partidosMap = new Map<
       string,
-      { sigla: string; cor: string; votos: number; candidatos: number; legenda: number }
+      { sigla: string; nome: string; tipo: string; cor: string; votos: number; candidatos: number; legenda: number }
     >()
     for (const item of candidatos) {
-      const sigla = item.candidato.partido
+      const usarAgremiacao = rankingCargo.id === '13'
+      const sigla = usarAgremiacao ? item.candidato.agremiacao : item.candidato.partido
+      const nome = usarAgremiacao ? item.candidato.agremiacao_nome : item.candidato.partido_nome
+      const tipo = usarAgremiacao ? item.candidato.agremiacao_tipo : 'PARTIDO'
       const atual = partidosMap.get(sigla) ?? {
         sigla,
-        cor: partyColor(sigla, item.candidato.cor),
+        nome,
+        tipo,
+        cor: partyColor(item.candidato.partido, item.candidato.cor),
         votos: 0,
         candidatos: 0,
         legenda: 0,
@@ -727,6 +732,8 @@ function App() {
         if (legenda <= 0) continue
         const atual = partidosMap.get(sigla) ?? {
           sigla,
+          nome: sigla,
+          tipo: 'PARTIDO',
           cor: partyColor(sigla),
           votos: 0,
           candidatos: 0,
@@ -1162,8 +1169,9 @@ function App() {
     }
     const salvo = selecoesPorCargo[id] ?? { partidoId: '', candidatoId: '' }
     setCargoId(id)
-    setPartidoId(salvo.partidoId)
+    setPartidoId(id === '11' ? '' : salvo.partidoId)
     setCandidatoId(salvo.candidatoId)
+    if (id === '11' && modo === 'rankeada') setModo('relativo')
   }
 
   const trocarPartido = (sigla: string) => {
@@ -1324,14 +1332,16 @@ function App() {
                     </select>
                   </label>
 
-                  <SearchSelect
-                    label="Partido"
-                    value={partidoId}
-                    options={partyOptions}
-                    onChange={trocarPartido}
-                    emptyLabel="--"
-                    placeholder="Pesquisar por sigla, nome ou número…"
-                  />
+                  {cargoId !== '11' && (
+                    <SearchSelect
+                      label="Partido"
+                      value={partidoId}
+                      options={partyOptions}
+                      onChange={trocarPartido}
+                      emptyLabel="--"
+                      placeholder="Pesquisar por sigla, nome ou número…"
+                    />
+                  )}
 
                   <SearchSelect
                     label="Candidato"
@@ -1631,7 +1641,7 @@ function App() {
                   className={rankingAba === 'partidos' ? 'ativo' : ''}
                   onClick={() => setRankingAba('partidos')}
                 >
-                  Partidos
+                  {rankingCargo.id === '13' ? 'Agremiações' : 'Partidos'}
                 </button>
               </div>
 
@@ -1675,7 +1685,9 @@ function App() {
                   </>
                 )
               ) : rankingBairro.partidos.length === 0 ? (
-                <p className="ranking-empty">Nenhum partido recebeu votos neste bairro.</p>
+                <p className="ranking-empty">
+                  Nenhum{rankingCargo.id === '13' ? 'a agremiação recebeu' : ' partido recebeu'} votos neste bairro.
+                </p>
               ) : (
                 <>
                   <ol className="ranking-list partidos">
@@ -1687,6 +1699,12 @@ function App() {
                           <span className="ranking-nome">
                             <strong>{item.sigla}</strong>
                             <span>
+                              {rankingCargo.id === '13' && item.tipo === 'FEDERAÇÃO'
+                                ? `${item.nome} · federação`
+                                : rankingCargo.id === '13'
+                                  ? 'partido'
+                                  : item.nome}
+                              {' · '}
                               {item.candidatos} candidato{item.candidatos === 1 ? '' : 's'}
                               {item.legenda > 0 ? ` · legenda ${nf.format(item.legenda)}` : ''}
                             </span>
@@ -1700,9 +1718,12 @@ function App() {
                     ))}
                   </ol>
                   <p className="ranking-count">
-                    {nf.format(rankingBairro.partidos.length)} partido
-                    {rankingBairro.partidos.length === 1 ? '' : 's'}
-                    {rankingCargo.id === '13' ? ' · inclui votos de legenda' : ''}
+                    {nf.format(rankingBairro.partidos.length)}{' '}
+                    {rankingCargo.id === '13' ? 'agremiação' : 'partido'}
+                    {rankingBairro.partidos.length === 1 ? '' : rankingCargo.id === '13' ? 'ões' : 's'}
+                    {rankingCargo.id === '13'
+                      ? ' · votos nominais por federação/partido; cadeiras proporcionais vão para a agremiação'
+                      : ''}
                   </p>
                 </>
               )}

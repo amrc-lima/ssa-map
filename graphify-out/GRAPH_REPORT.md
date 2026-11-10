@@ -1,7 +1,7 @@
 # Graph Report - ssa-map  (2026-11-10)
 
 ## Corpus Check
-- 91 files · ~156,304 words
+- 91 files · ~156,499 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 135 file(s) not represented in the graph (top: .css 95, .htm 36, (none) 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `01c1ee29`
+- Built from commit: `3cf710e3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
