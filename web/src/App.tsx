@@ -56,6 +56,9 @@ type Cargo = { id: string; nome: string; candidatos: Candidato[] }
 type Meta = {
   municipio: string
   ano: number
+  turno?: number
+  gerado_em?: string
+  fonte?: string
   bairros: number
   candidatos: number
   secoes_total: number
@@ -366,6 +369,14 @@ function App() {
   const bairrosOrdenados = useMemo(
     () => (votosDoc?.bairros ?? []).slice().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
     [votosDoc],
+  )
+
+  const bairrosSemVoto = useMemo(
+    () =>
+      bairrosOrdenados
+        .filter((item) => item.votos_candidatos === 0)
+        .map((item) => item.nome),
+    [bairrosOrdenados],
   )
 
   const bairrosBusca = useMemo(() => {
@@ -1233,21 +1244,21 @@ function App() {
   const escalaNota = !selecao
     ? 'Sem dados para a seleção'
     : modo === 'rankeada' && selecao.tipo !== 'total'
-      ? `Escala rankeada: bairros ordenados pelo percentual do selecionado; mais forte onde ${selecao.rotulo} teve seu maior percentual (${pctText(maxPctSelecionado)}): ${bairroMaxPct || '—'} · clique no bairro para abrir o ranking`
+      ? `Foco no selecionado (%): compara bairros pelo percentual de votos de ${selecao.rotulo}; 100% = bairro onde foi mais forte (${pctText(maxPctSelecionado)}${bairroMaxPct ? `, ${bairroMaxPct}` : ''}).`
       : modo === 'global' && selecao.tipo !== 'total'
-        ? `Escala global: maior percentual de ${selecao.tipo === 'candidato' ? 'um candidato' : 'um partido'} neste cargo em um bairro (${pctText(selecao.pctGlobalMax)})`
+        ? `Comparação no cargo (%): usa o maior percentual de ${selecao.tipo === 'candidato' ? 'um candidato' : 'um partido'} no cargo em um bairro como referência (${pctText(selecao.pctGlobalMax)}).`
         : modo === 'global'
-          ? `Escala global: bairro mais forte com ${nf.format(selecao.denomGlobal)} votos`
-          : `Escala do selecionado: bairro mais forte com ${nf.format(selecao.denomRel)} votos`
+          ? `Comparação no cargo (votos): usa o bairro com mais votos no cargo como referência (${nf.format(selecao.denomGlobal)}).`
+          : `Foco no selecionado (votos): usa o melhor bairro de ${selecao.rotulo} como referência (${nf.format(selecao.denomRel)} votos).`
 
   const legendaInicio =
-    modo === 'rankeada' || (modo === 'global' && selecao?.tipo !== 'total') ? '0%' : 'menos votos'
+    modo === 'rankeada' || (modo === 'global' && selecao?.tipo !== 'total') ? '0% (menor)' : '0 votos (menor)'
   const legendaFim =
     modo === 'rankeada'
-      ? pctText(maxPctSelecionado)
+      ? `${pctText(maxPctSelecionado)} (máx. do selecionado)`
       : modo === 'global' && selecao?.tipo !== 'total'
-        ? pctText(selecao?.pctGlobalMax ?? 0)
-        : 'mais votos'
+        ? `${pctText(selecao?.pctGlobalMax ?? 0)} (máx. no cargo)`
+        : `${nf.format(selecao?.denomRel ?? selecao?.denomGlobal ?? 0)} (máx.)`
 
   const candidatoPct =
     candidato && candidato.cargo_id === '11' && totalCargo > 0 ? candidato.votos_total / totalCargo : 1
@@ -1422,20 +1433,30 @@ function App() {
                 )}
 
                 <div className="modos">
-                  <button type="button" className={modo === 'relativo' ? 'ativo' : ''} onClick={() => setModo('relativo')}>
-                    Relativa ao selecionado
+                  <button
+                    type="button"
+                    className={modo === 'relativo' ? 'ativo' : ''}
+                    onClick={() => setModo('relativo')}
+                    title="Intensidade em votos absolutos: compara com o melhor bairro do selecionado (ou do total do cargo)."
+                  >
+                    Foco no selecionado (votos)
                   </button>
                   <button
                     type="button"
                     className={modo === 'rankeada' ? 'ativo' : ''}
                     onClick={() => setModo('rankeada')}
                     disabled={!selecao || selecao.tipo === 'total'}
-                    title="Disponível para candidato ou partido"
+                    title="Intensidade em %: compara bairros pelo percentual do candidato/partido selecionado; só para candidato ou partido."
                   >
-                    Relativa rankeada
+                    Foco no selecionado (%)
                   </button>
-                  <button type="button" className={modo === 'global' ? 'ativo' : ''} onClick={() => setModo('global')}>
-                    Global
+                  <button
+                    type="button"
+                    className={modo === 'global' ? 'ativo' : ''}
+                    onClick={() => setModo('global')}
+                    title="Compara com o maior valor do cargo em um bairro (votos ou %, conforme a seleção)."
+                  >
+                    Comparação no cargo
                   </button>
                 </div>
 
@@ -1575,30 +1596,48 @@ function App() {
 
             {meta && (
               <details className="sobre">
-                <summary>Dados e limitações</summary>
+                <summary>Sobre os dados e cobertura</summary>
                 <p>
-                  Votos por <strong>local de votação</strong> (seção), não por residência do eleitor. Bairros sem local de
-                  votação atribuído aparecem sem cor no total.
+                  Votos por <strong>local de votação</strong> (seção eleitoral), não por residência do eleitor.
+                  A distribuição por bairro é uma <strong>aproximação</strong> (local → bairro).
+                </p>
+                {meta && (
+                  <>
+                    <p>
+                      <strong>Cobertura:</strong> {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribuídos a bairro
+                      ({nf.format(meta.votos_atribuidos_bairro ?? 0)} de {nf.format(meta.votos_candidatos ?? 0)}).{' '}
+                      {nf.format(meta.secoes_mapeadas ?? 0)}/{nf.format(meta.secoes_total ?? 0)} seções mapeadas em {nf.format(meta.locais_distintos ?? 0)} locais.
+                    </p>
+                    <p>
+                      <strong>Método de atribuição:</strong> {nf.format(meta.secoes_por_coordenada ?? 0)} seções por coordenada do local,{' '}
+                      {nf.format(meta.secoes_por_alias ?? 0)} por alias de nome, {nf.format(meta.secoes_por_nome_prioritario ?? 0)} por nome prioritário,{' '}
+                      {nf.format(meta.secoes_por_nome ?? 0)} por nome exato, {nf.format(meta.secoes_sem_bairro ?? 0)} sem bairro.
+                    </p>
+                    <p>
+                      <strong>Base:</strong> {nf.format(meta.bairros ?? 0)} bairros oficiais (ArcGIS vigente) e {nf.format(meta.candidatos ?? 0)} candidatos.
+                      Percentuais usam votos válidos do cargo no bairro (candidatos + legenda no vereador).
+                    </p>
+                    <p>
+                      <strong>Bairros sem votos/local atribuído ({bairrosSemVoto.length}):</strong>{' '}
+                      {bairrosSemVoto.length ? bairrosSemVoto.join(', ') : 'nenhum'}.
+                    </p>
+                    {meta.coeficiente_eleitoral ? (
+                      <p>
+                        <strong>Vereador (proporcional):</strong> {nf.format(meta.cadeiras_vereador ?? 0)} cadeiras, QE {nf.format(meta.coeficiente_eleitoral)},
+                        piso 10% do QE ({nf.format(meta.limite_10_coeficiente ?? 0)}). Cadeiras pertencem à agremiação (partido/federação), não diretamente ao partido em federações.
+                      </p>
+                    ) : null}
+                  </>
+                )}
+                <p>
+                  <strong>Modos de cor (intensidade):</strong> “Foco no selecionado (votos)” compara por votos absolutos com o melhor bairro da seleção;
+                  “Foco no selecionado (%)” compara pelo percentual do selecionado em cada bairro; “Comparação no cargo” compara com o maior valor do cargo no município.
                 </p>
                 <p>
-                  {nf.format(meta.secoes_total)} seções: {nf.format(meta.secoes_por_coordenada)} por coordenada; {nf.format(meta.secoes_por_alias ?? 0)} por aliase; {nf.format(meta.secoes_por_nome_prioritario ?? 0)} por nome prioritário; {nf.format(meta.secoes_por_nome)} por nome exato; {nf.format(meta.secoes_sem_bairro)} sem bairro.
+                  Avatares exibem foto oficial do TSE quando disponível (com iniciais como alternativa). Clique em um bairro para ver o ranking (candidatos e agremiações).
                 </p>
-                <p>
-                  {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribuídos a um bairro. {nf.format(meta.bairros)} bairros oficiais e {nf.format(meta.candidatos)} candidatos. Percentuais usam votos válidos do cargo no bairro (candidatos + legenda no vereador).
-                </p>
-                <p>
-                  Avatares exibem foto oficial do TSE quando disponível (com iniciais como alternativa). Modos: relativa (votos absolutos do selecionado),
-                  rankeada (percentual próprio do selecionado por bairro) e global (percentual comparado ao maior do cargo).
-                  Clique em um bairro para ver o ranking completo.
-                </p>
-                {meta.coeficiente_eleitoral ? (
-                  <p>
-                    <strong>Vereador:</strong> {nf.format(meta.cadeiras_vereador ?? 0)} cadeiras, QE {nf.format(meta.coeficiente_eleitoral)}, piso 10% ({nf.format(meta.limite_10_coeficiente ?? 0)}).
-                  </p>
-                ) : null}
                 <p className="fonte">
-                  Fonte: TSE Dados Abertos (Salvador/BA, 2024, 1º turno) e base territorial oficial (Decreto nº 32.791/2020).
-                  `NM_BAIRRO` do TSE mapeado por aliases; coordenadas -1,-1 não geocodificadas.
+                  Fonte: TSE Dados Abertos (Salvador/BA, 2024, 1º turno) e base territorial oficial (Decreto nº 32.791/2020). Gerado em {meta?.gerado_em ?? '—'}.
                 </p>
               </details>
             )}
