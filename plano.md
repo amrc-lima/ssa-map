@@ -93,8 +93,8 @@ Deploy gratuito (Cloudflare Pages / GitHub Pages)
 
 - Locais de votação com endereço e, quando disponível, coordenadas oficiais.
 - Base cartográfica:
-  - `mapas/mapa1/BA_bairros_CD2022.gpkg` — 468 bairros de 11 municípios da BA, SRS 4674 (SIRGAS 2000); **173 bairros de Salvador**, com `CD_MUN=2927408`.
-  - Serviço ArcGIS da Prefeitura `Bairros_Dec32791_20_Vigente` (layer 0, SRS 3857), consultável em GeoJSON.
+  - `mapas/mapa1/BA_bairros_CD2022.gpkg` — 468 bairros de 11 municípios da BA, SRS 4674 (SIRGAS 2000); **173 bairros de Salvador** no GPKG legado, com `CD_MUN=2927408`.
+  - Serviço ArcGIS da Prefeitura `Bairros_Dec32791_20_Vigente` (layer 0, SRS 3857), consultável em GeoJSON; **170 bairros** na camada vigente.
 - **Decisão:** usar o serviço ArcGIS "vigente" como base principal de exibição (mais atual e oficial da Prefeitura) e o GPKG como base de validação/fallback e para conferência de nomes.
 
 ### 3.4 Modelo de incerteza (crítico)
@@ -158,8 +158,7 @@ ssa-map/
 │   │       └── filters.ts
 │   └── public/data/             # artefatos gerados (podem ser symlink/cópia)
 ├── .github/workflows/
-│   ├── etl.yml                  # cron: coleta + gera artefatos + commit
-│   └── deploy.yml               # publica web/ no Pages
+│   └── deploy.yml               # build do web/ e publicação no Pages (ETL é manual; dados de 2024 são estáticos)
 └── README.md                    # uso, fontes, licença
 ```
 
@@ -230,7 +229,7 @@ Arquivo por nível (`bairro`, `zona`, `local`, `secao`) para manter payloads peq
 ### 5.4 `geo/bairros.geojson`
 
 - Polígonos de Salvador em WGS84 (EPSG:4326), com propriedades `id`, `nome`, `cd_mun`.
-- Gerado a partir do serviço ArcGIS; conferido contra o GPKG (173 bairros de Salvador).
+- Gerado a partir do serviço ArcGIS (170 bairros na camada vigente); o GPKG legado tem 173 e é usado apenas para conferência de nomes/contagem.
 
 ### 5.5 `geo/locais.geojson`
 
@@ -335,9 +334,9 @@ Visões de interação:
 
 ### 8.1 GitHub Actions
 
-- `etl.yml` (cron semanal + manual): executa o pipeline, valida, gera artefatos e comita em `web/public/data` ou publica em branch de dados.
 - `deploy.yml`: build do `web/` e publicação no Cloudflare Pages/GitHub Pages.
-- Cache de dependências e dos downloads do TSE entre execuções.
+- O ETL é executado manualmente (`python -m ssa_etl build`) e os artefatos são versionados em `web/public/data`; não há cron de ETL porque os dados de 2024 são estáticos.
+- Cache de dependências do frontend no CI; downloads do TSE ficam no cache local do ETL.
 
 ### 8.2 Custo
 
@@ -351,7 +350,7 @@ Visões de interação:
 
 - **ETL:** testes de parsing de amostras reais, do spatial join (casos de fronteira) e da agregação (somas fecham com o total do TSE).
 - **Frontend:** testes de `color.ts`, `metrics.ts` (modos A/B), seleção de vencedor.
-- **Integridade:** asserções de contagem (ex.: 173 bairros de Salvador), soma de votos por área = total do local, cobertura mínima.
+- **Integridade:** asserções de contagem (ex.: 170 bairros na camada ArcGIS vigente; GPKG legado tem 173), soma de votos por área = total do local, cobertura mínima.
 - **Transparência:** página "Sobre os dados" com fontes, data de geração, metodologia de atribuição e limitações; rodapé com aviso de que a distribuição por bairro é aproximada.
 
 ---
@@ -372,28 +371,28 @@ Visões de interação:
 
 ## 11. Roadmap
 
-- [ ] **Fase 0 — Descoberta:** testar e documentar endpoints reais do TSE; validar fotos; mapear formato dos resultados.
-- [ ] **Fase 1 — Base cartográfica:** baixar bairros do ArcGIS (GeoJSON 4326); validar 173 bairros; comparar com o GPKG.
-- [ ] **Fase 2 — ETL de candidaturas:** coletar e normalizar candidatos de Salvador 2024.
-- [ ] **Fase 3 — ETL de resultados + locais:** coletar, geocodificar e agregar.
-- [ ] **Fase 4 — Artefatos:** gerar `candidatos.json`, `resultados_{nivel}.json`, `bairros.geojson`, `locais.geojson`, manifest.
-- [ ] **Fase 5 — Mapa MVP:** choropleth por bairro com vencedor, legenda e tooltip.
-- [ ] **Fase 6 — Modos de cor:** modos A e B, hachura para zero, foco em candidato/partido.
-- [ ] **Fase 7 — Níveis:** alternância bairro/zona/local/seção e painel de incerteza.
-- [ ] **Fase 8 — Fotos e partidos:** cores curadas e fotos via `sqcand`.
-- [ ] **Fase 9 — Automação e deploy:** Actions (cron + deploy), Cloudflare Pages, página "Sobre os dados".
-- [ ] **Fase 10 — QA e lançamento:** testes, acessibilidade, performance, revisão de dados.
+- [x] **Fase 0 — Descoberta:** endpoints do TSE documentados; fotos em lote por UF identificadas (não usadas no MVP).
+- [x] **Fase 1 — Base cartográfica:** bairros do ArcGIS (GeoJSON 4326); 170 bairros na camada vigente, comparados com os 173 do GPKG.
+- [x] **Fase 2 — ETL de candidaturas:** candidatos de Salvador 2024 normalizados.
+- [x] **Fase 3 — ETL de resultados + locais:** votação por seção agregada por bairro via point-in-polygon e aliases.
+- [x] **Fase 4 — Artefatos:** `candidatos.json`, `votos.json`, `bairros.geojson` e metadados de integridade.
+- [x] **Fase 5 — Mapa MVP:** choropleth por bairro, legenda, tooltip e popup.
+- [x] **Fase 6 — Modos de cor:** escala relativa/global por percentual, hachura para zero, foco em candidato/partido e tela de vereador mais votado por bairro.
+- [ ] **Fase 7 — Níveis:** alternância bairro/zona/local/seção e painel de incerteza (hoje só bairro).
+- [ ] **Fase 8 — Fotos e partidos:** cores curadas feitas; avatar com iniciais e anel de situação/percentual; fotos oficiais ainda não.
+- [ ] **Fase 9 — Automação e deploy:** deploy no Cloudflare Pages feito; ETL manual (dados estáticos) e página "Sobre os dados" integrada.
+- [ ] **Fase 10 — QA e lançamento:** build/lint e validação headless feitos; acessibilidade e performance ainda podem evoluir.
 
 ---
 
 ## 12. Critérios de aceite
 
-- Mapa renderiza os 173 bairros de Salvador com nomes corretos.
+- Mapa renderiza os 170 bairros da camada ArcGIS vigente com nomes corretos (o GPKG legado tem 173).
 - As duas normalizações (A e B) produzem resultados coerentes e reproduzíveis.
 - Áreas com 0 voto exibem hachura.
 - Soma dos votos por área bate com os totais oficiais do TSE (tolerância zero para o que foi atribuído).
 - A UI informa claramente cobertura e limitações da atribuição por bairro.
-- Pipeline roda de ponta a ponta via `python -m ssa_etl` e via GitHub Actions.
+- Pipeline roda de ponta a ponta via `python -m ssa_etl`; o GitHub Actions faz apenas build/deploy do site.
 - Deploy público, gratuito e acessível por URL.
 
 ---

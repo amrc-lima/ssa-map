@@ -21,6 +21,31 @@ body {
   inset: 0;
 }
 
+.views {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.views button {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.views button.ativo {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #fff;
+}
+
 .map {
   position: absolute;
   inset: 0;
@@ -271,6 +296,30 @@ body {
   border: 1px solid rgba(15, 23, 42, 0.15);
 }
 
+.avatar {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring) var(--pct), #e2e8f0 0);
+}
+
+.avatar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--fill);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
 .candidato-info {
   display: flex;
   flex-direction: column;
@@ -447,6 +496,143 @@ body {
 
 .pop .pop-note {
   margin-top: 4px;
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.view-intro {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.top-partidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: #475569;
+}
+
+.top-partidos span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.top-partidos i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.top-partidos b {
+  color: #334155;
+  font-weight: 700;
+}
+
+.filtro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.filtro {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.filtro:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+}
+
+.lista-vereadores {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista-vereadores button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lista-vereadores button:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.lista-cor {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 30px;
+  border-radius: 3px;
+}
+
+.lista-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lista-texto strong {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lista-texto span {
+  overflow: hidden;
+  font-size: 11px;
+  color: #64748b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lista-pct {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.nota-lista {
+  margin: 8px 0 0;
   font-size: 10.5px;
   color: #94a3b8;
 }

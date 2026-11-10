@@ -68,9 +68,7 @@ def _federacao_sigla(value: str) -> str:
 def _quociente_eleitoral(validos: int, cadeiras: int) -> int:
     if cadeiras <= 0:
         return 0
-    quociente = validos / cadeiras
-    inteiro = int(quociente)
-    return inteiro + 1 if quociente - inteiro > 0.5 else inteiro
+    return validos // cadeiras
 
 
 def _agremiacoes(cand_meta: pd.DataFrame) -> pd.DataFrame:

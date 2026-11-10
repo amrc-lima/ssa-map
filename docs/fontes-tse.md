@@ -10,7 +10,7 @@ Data da sondagem: 2026-11-09.
 | Portal de Dados Abertos do TSE | **200 OK**. Fonte principal adotada (`dadosabertos.tse.jus.br` + `cdn.tse.jus.br`). |
 | Fotos de candidatos | Disponíveis em **lote por UF** (`foto_cand2024_BA_div.zip`, ~1,08 GB). |
 | Locais de votação com coordenadas | **Sim** — `eleitorado_local_votacao_2024.zip` traz `NR_LATITUDE`, `NR_LONGITUDE`, `NM_BAIRRO`, endereço, zona, seção e eleitores. |
-| Base cartográfica | ArcGIS da Prefeitura (`Bairros_Dec32791_20_Vigente`) responde 200; GPKG local (173 bairros de Salvador, EPSG:4674). |
+| Base cartográfica | ArcGIS da Prefeitura (`Bairros_Dec32791_20_Vigente`) responde 200 e tem **170 bairros** na camada vigente; GPKG local tem 173 bairros de Salvador (EPSG:4674). O app usa a camada vigente. |
 
 ## Endpoints validados
 
@@ -42,7 +42,7 @@ Data da sondagem: 2026-11-09.
 - `eleitorado_local_votacao_2024.csv` — colunas confirmadas:
   `DT_GERACAO, ... SG_UF, CD_MUNICIPIO, NM_MUNICIPIO, NR_ZONA, NR_SECAO, ... NR_LOCAL_VOTACAO, NM_LOCAL_VOTACAO, DS_ENDERECO, NM_BAIRRO, NR_CEP, NR_LATITUDE, NR_LONGITUDE, ... QT_ELEITOR_SECAO, QT_ELEITOR_ELEICAO_MUNICIPAL`.
   - **Contém coordenadas** e eleitores por seção.
-  - Bairro vem do endereço (TSE), útil como conferência — não substitui o polígono oficial.
+  - O bairro vem do campo `NM_BAIRRO` do TSE (não é geocodificado a partir do endereço). É útil como conferência, mas usa nomes informais e não substitui o polígono oficial.
 
 > Ainda a confirmar na implementação (colunas exatas de `consulta_cand` e `votacao_secao`): `SQ_CANDIDATO`, `NM_URNA_CANDIDATO`, `SG_PARTIDO`, `DS_CARGO`, `NR_CANDIDATO`, e os campos de voto por seção.
 
@@ -57,4 +57,4 @@ Data da sondagem: 2026-11-09.
 ## Ruff/qualidade
 
 - Validar cobertura: toda seção de Salvador com coordenada? Quantas sem lat/long? Quanto do eleitorado é atribuído com precisão?
-- Falhar o build se contagens essenciais divergirem (ex.: bairros de Salvador ≠ 173 na base GPKG).
+- Falhar o build se contagens essenciais divergirem (ex.: bairros da camada ArcGIS vigente ≠ 170; GPKG legado tem 173).

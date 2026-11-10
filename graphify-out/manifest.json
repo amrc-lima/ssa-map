@@ -60,9 +60,9 @@
     "semantic_hash": ""
   },
   "data-pipeline/src/ssa_etl/build.py": {
-    "mtime": 1794264441.777747,
-    "seen": 1794264934.8005016,
-    "ast_hash": "912d449447633a5873d78b1ac547d9e6",
+    "mtime": 1794305260.2493277,
+    "seen": 1794306070.891638,
+    "ast_hash": "a8ffee214aa5f7b267879bf0285332e6",
     "semantic_hash": ""
   },
   "data-pipeline/src/ssa_etl/cache.py": {
@@ -138,21 +138,21 @@
     "semantic_hash": ""
   },
   "web/public/data/candidatos.json": {
-    "mtime": 1794264491.010576,
-    "seen": 1794264934.8005652,
-    "ast_hash": "100c84593341ca98d4337a48883f1327",
+    "mtime": 1794305266.412554,
+    "seen": 1794306070.891708,
+    "ast_hash": "bf7c0edcbc21650e9c9ca39e70e6f490",
     "semantic_hash": ""
   },
   "web/public/data/votos.json": {
-    "mtime": 1794264491.0231762,
-    "seen": 1794264934.800566,
-    "ast_hash": "300d018a7cda204c28e4f4397d173d74",
+    "mtime": 1794305266.4185572,
+    "seen": 1794306070.8917093,
+    "ast_hash": "1fd9211543a1000e63ace5c68ef6944f",
     "semantic_hash": ""
   },
   "web/src/App.tsx": {
-    "mtime": 1794264924.7786415,
-    "seen": 1794264934.8005672,
-    "ast_hash": "16125944f392f9bb79c5d69791e7292f",
+    "mtime": 1794306001.6943848,
+    "seen": 1794306070.8917115,
+    "ast_hash": "1f29b27a6865bdc0bd12ac4f514dde0d",
     "semantic_hash": ""
   },
   "web/src/main.tsx": {
@@ -192,9 +192,9 @@
     "semantic_hash": ""
   },
   "docs/fontes-tse.md": {
-    "mtime": 1794259353.4843433,
-    "seen": 1794260058.3608513,
-    "ast_hash": "265400a3aaf3df1233e787ea9251a6be",
+    "mtime": 1794305883.3441188,
+    "seen": 1794306070.8917236,
+    "ast_hash": "14715a08ada59597485d25db2a58ceba",
     "semantic_hash": ""
   },
   "election-data.md": {
@@ -216,9 +216,9 @@
     "semantic_hash": ""
   },
   "plano.md": {
-    "mtime": 1794257869.2592857,
-    "seen": 1794260058.3608546,
-    "ast_hash": "475b1f334cc7fc3f7c94b65799a70a34",
+    "mtime": 1794305911.290284,
+    "seen": 1794306070.89173,
+    "ast_hash": "87d47937acdb4515d03c49e0ff008bad",
     "semantic_hash": ""
   },
   "proj.md": {
@@ -15186,9 +15186,9 @@
     "semantic_hash": ""
   },
   "data-pipeline/scripts/calc_vereadores.py": {
-    "mtime": 1794261820.9903018,
-    "seen": 1794262290.7974596,
-    "ast_hash": "2cdc163462043ee9e12a2130e9a092e6",
+    "mtime": 1794305976.618788,
+    "seen": 1794306070.8916,
+    "ast_hash": "fa09b2045f09aedf5109d2d5935f18ec",
     "semantic_hash": ""
   },
   "data-pipeline/scripts/extract_party_colors.py": {
@@ -16281,6 +16281,12 @@
     "mtime": 1794264504.1337535,
     "seen": 1794264934.800473,
     "ast_hash": "78c5839895a767e5dbb4ee2659347991",
+    "semantic_hash": ""
+  },
+  "paused.txt": {
+    "mtime": 1794273443.123343,
+    "seen": 1794306070.8917284,
+    "ast_hash": "081e98c7ff08c9b95df344db5daf039a",
     "semantic_hash": ""
   },
   ".opencode/package-lock.json": {

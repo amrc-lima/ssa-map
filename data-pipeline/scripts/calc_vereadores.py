@@ -1,5 +1,3 @@
-import math
-
 import pandas as pd
 
 from ssa_etl.config import CACHE_DIR
@@ -41,8 +39,7 @@ legenda_agg = legenda.groupby("agremiacao_key")["QT_VOTOS"].sum()
 
 validos = int(meta["votos"].sum() + legenda["QT_VOTOS"].sum())
 seats = int(meta["DS_SIT_TOT_TURNO"].str.startswith("ELEITO").sum())
-qe_float = validos / seats
-qe = int(qe_float) + (1 if qe_float - int(qe_float) > 0.5 else 0)
+qe = validos // seats
 limite10 = qe * 0.1
 
 agg_votos = meta.groupby("agremiacao_key")["votos"].sum().add(legenda_agg, fill_value=0).astype("int64")
