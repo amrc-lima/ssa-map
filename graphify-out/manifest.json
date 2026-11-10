@@ -150,9 +150,9 @@
     "semantic_hash": ""
   },
   "web/src/App.tsx": {
-    "mtime": 1794306001.6943848,
-    "seen": 1794306070.8917115,
-    "ast_hash": "1f29b27a6865bdc0bd12ac4f514dde0d",
+    "mtime": 1794309961.1619387,
+    "seen": 1794332625.543932,
+    "ast_hash": "46a332e32e1ae2d30c21250665fba3d6",
     "semantic_hash": ""
   },
   "web/src/main.tsx": {
@@ -16284,9 +16284,9 @@
     "semantic_hash": ""
   },
   "paused.txt": {
-    "mtime": 1794273443.123343,
-    "seen": 1794306070.8917284,
-    "ast_hash": "081e98c7ff08c9b95df344db5daf039a",
+    "mtime": 1794309112.6801205,
+    "seen": 1794332625.5439472,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
   ".opencode/package-lock.json": {

@@ -101,7 +101,7 @@ type BairroFeature = {
 }
 type BairroCollection = { type: 'FeatureCollection'; features: BairroFeature[] }
 
-type Modo = 'global' | 'relativo'
+type Modo = 'global' | 'relativo' | 'rankeada'
 type Visao = 'mapa' | 'vereador'
 type StatusTone = 'eleito' | 'coeficiente' | 'nao' | 'alerta'
 
@@ -317,6 +317,7 @@ function App() {
   const [modo, setModo] = useState<Modo>('relativo')
   const [visao, setVisao] = useState<Visao>('mapa')
   const [filtroVereador, setFiltroVereador] = useState('')
+  const [bairroSelecionado, setBairroSelecionado] = useState<number | null>(null)
 
   const cargo = useMemo(
     () => candDoc?.cargos.find((item) => item.id === cargoId) ?? null,
@@ -325,6 +326,13 @@ function App() {
   const candidato = useMemo(
     () => cargo?.candidatos.find((item) => item.id === candidatoId) ?? null,
     [cargo, candidatoId],
+  )
+  const rankingCargo = useMemo(
+    () =>
+      visao === 'vereador'
+        ? (candDoc?.cargos.find((item) => item.id === '13') ?? cargo)
+        : cargo,
+    [candDoc, visao, cargo],
   )
   const meta = votosDoc?.meta ?? candDoc?.meta ?? null
   const incluirLegenda = cargo?.id === '13'
@@ -410,6 +418,30 @@ function App() {
 
     return { porPartido, total, globalPartyMax, totalMax }
   }, [cargo, incluirLegenda, votosDoc])
+
+  const totaisPorCargo = useMemo(() => {
+    const resultado = new Map<string, Record<string, number>>()
+    if (!candDoc || !votosDoc) return resultado
+    for (const item of candDoc.cargos) {
+      const total: Record<string, number> = {}
+      for (const candidatoItem of item.candidatos) {
+        for (const [bairroId, qtd] of Object.entries(
+          votosDoc.por_candidato[candidatoItem.id] ?? {},
+        )) {
+          total[bairroId] = (total[bairroId] ?? 0) + qtd
+        }
+      }
+      if (item.id === '13') {
+        for (const votosLegenda of Object.values(votosDoc.legenda ?? {})) {
+          for (const [bairroId, qtd] of Object.entries(votosLegenda)) {
+            total[bairroId] = (total[bairroId] ?? 0) + qtd
+          }
+        }
+      }
+      resultado.set(item.id, total)
+    }
+    return resultado
+  }, [candDoc, votosDoc])
 
   const escalasPct = useMemo(() => {
     if (!cargo || !agregados || !votosDoc) return { candidato: 0, partido: 0 }
@@ -506,6 +538,40 @@ function App() {
     }
     return resultado
   }, [cargo, selecao, candidato, partido, agregados, votosDoc])
+
+  const maxPctSelecionado = useMemo(() => {
+    if (!selecao || selecao.tipo === 'total' || !agregados) return 0
+    let max = 0
+    for (const [bairroId, votos] of Object.entries(selecao.votos)) {
+      const total = agregados.total[bairroId] ?? 0
+      if (total > 0) max = Math.max(max, votos / total)
+    }
+    return max
+  }, [selecao, agregados])
+
+  const rankingBairro = useMemo(() => {
+    if (bairroSelecionado === null || !rankingCargo || !votosDoc) return null
+    const bairro = votosDoc.bairros.find((item) => item.id === bairroSelecionado)
+    if (!bairro) return null
+    const total = totaisPorCargo.get(rankingCargo.id)?.[String(bairroSelecionado)] ?? 0
+    const items = rankingCargo.candidatos
+      .map((item) => ({
+        candidato: item,
+        votos: votosDoc.por_candidato[item.id]?.[String(bairroSelecionado)] ?? 0,
+      }))
+      .filter((item) => item.votos > 0)
+      .sort(
+        (a, b) =>
+          b.votos - a.votos ||
+          a.candidato.nome_urna.localeCompare(b.candidato.nome_urna, 'pt-BR'),
+      )
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1,
+        pct: total > 0 ? item.votos / total : 0,
+      }))
+    return { bairro, total, items }
+  }, [bairroSelecionado, rankingCargo, votosDoc, totaisPorCargo])
 
   const topVereadores = useMemo(() => {
     const doc = candDoc?.cargos.find((item) => item.id === '13')
@@ -692,7 +758,7 @@ function App() {
     })
     mapRef.current = map
     ;(window as unknown as { __map?: MapLibreMap }).__map = map
-    map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
+    map.addControl(new NavigationControl({ showCompass: false }), 'bottom-left')
 
     map.on('load', () => {
       map.addImage('hatch', makeHatchImage())
@@ -723,6 +789,20 @@ function App() {
         source: 'bairros',
         paint: { 'line-color': '#1e293b', 'line-width': 0.7, 'line-opacity': 0.7 },
       })
+      map.addLayer({
+        id: 'bairros-selected-halo',
+        type: 'line',
+        source: 'bairros',
+        filter: ['==', ['get', 'id'], -1],
+        paint: { 'line-color': '#fff', 'line-width': 7, 'line-opacity': 0.9 },
+      })
+      map.addLayer({
+        id: 'bairros-selected',
+        type: 'line',
+        source: 'bairros',
+        filter: ['==', ['get', 'id'], -1],
+        paint: { 'line-color': '#f97316', 'line-width': 3.5, 'line-opacity': 1 },
+      })
 
       map.on('click', (event: MapLayerMouseEvent) => {
         const feature = map.queryRenderedFeatures(event.point, {
@@ -730,6 +810,8 @@ function App() {
         })[0]
         if (!feature) return
         const props = (feature.properties ?? {}) as Record<string, unknown>
+        const clickedId = Number(props.id)
+        if (Number.isFinite(clickedId)) setBairroSelecionado(clickedId)
         const html = String(props.popupHtml ?? '')
         if (!html) return
         clickPopupRef.current?.remove()
@@ -796,6 +878,17 @@ function App() {
 
   useEffect(() => {
     const map = mapRef.current
+    if (!map || !pronto) return
+    if (map.getLayer('bairros-selected-halo')) {
+      map.setFilter('bairros-selected-halo', ['==', ['get', 'id'], bairroSelecionado ?? -1])
+    }
+    if (map.getLayer('bairros-selected')) {
+      map.setFilter('bairros-selected', ['==', ['get', 'id'], bairroSelecionado ?? -1])
+    }
+  }, [bairroSelecionado, pronto])
+
+  useEffect(() => {
+    const map = mapRef.current
     if (!map || !pronto || !geojson || !votosDoc) return
 
     const qualidade = new Map(votosDoc.bairros.map((item) => [item.id, item.qualidade_coordenada]))
@@ -857,8 +950,8 @@ function App() {
       const votos = selecao.votos[String(id)] ?? 0
       const total = agregados.total[String(id)] ?? 0
       const pct = total > 0 ? votos / total : 0
-      const rank = ranks[String(id)]
-      const rankTxt = votos > 0 && rank ? `${rank}º` : ''
+      const rank = ranks[String(id)] ?? 0
+      const rankTxt = votos > 0 && rank > 0 ? `${rank}º` : ''
       let linha = ''
       if (total === 0) {
         linha = 'Sem local de votação atribuído a este bairro'
@@ -871,19 +964,20 @@ function App() {
           selecao.tipo === 'partido' ? `${rankTxt} entre partidos` : `${rankTxt} no bairro`
         linha = `${nf.format(votos)} votos · ${pctText(pct)} dos votos válidos${rankTxt ? ` · ${posicao}` : ''}`
       }
-      const escala =
-        modo === 'global'
-          ? selecao.tipo === 'total'
-            ? selecao.denomGlobal
-            : selecao.pctGlobalMax
-          : selecao.denomRel
-      const intensidade =
-        votos > 0 && escala > 0
-          ? Math.min(
-              1,
-              modo === 'global' && selecao.tipo !== 'total' ? pct / escala : votos / escala,
-            )
-          : 0
+      let intensidade = 0
+      if (votos > 0) {
+        if (modo === 'rankeada') {
+          if (maxPctSelecionado > 0) intensidade = pct / maxPctSelecionado
+        } else if (modo === 'global') {
+          const escala = selecao.tipo === 'total' ? selecao.denomGlobal : selecao.pctGlobalMax
+          if (escala > 0) {
+            intensidade = (selecao.tipo === 'total' ? votos : pct) / escala
+          }
+        } else if (selecao.denomRel > 0) {
+          intensidade = votos / selecao.denomRel
+        }
+      }
+      intensidade = Math.max(0, Math.min(1, intensidade))
 
       return {
         type: 'Feature' as const,
@@ -927,6 +1021,7 @@ function App() {
     visao,
     agregados,
     ranks,
+    maxPctSelecionado,
     topVereadores,
     maxTopPct,
   ])
@@ -941,12 +1036,14 @@ function App() {
   const trocarPartido = (sigla: string) => {
     setPartidoId(sigla)
     setCandidatoId('')
+    if (!sigla && modo === 'rankeada') setModo('relativo')
   }
 
   const focarBairro = (id: number) => {
     const map = mapRef.current
     const feature = geojson?.features.find((item) => Number(item.properties.id) === id)
     if (!map || !feature) return
+    setBairroSelecionado(id)
     const bounds = new LngLatBounds()
     extendBounds(bounds, feature.geometry)
     if (bounds.isEmpty()) return
@@ -965,19 +1062,39 @@ function App() {
 
   const escalaNota = !selecao
     ? 'Sem dados para a seleção'
-    : modo === 'global' && selecao.tipo !== 'total'
-      ? `Escala global: maior percentual de ${selecao.tipo === 'candidato' ? 'um candidato' : 'um partido'} neste cargo em um bairro (${pctText(selecao.pctGlobalMax)})`
-      : modo === 'global'
-        ? `Escala global: bairro mais forte com ${nf.format(selecao.denomGlobal)} votos`
-        : `Escala do selecionado: bairro mais forte com ${nf.format(selecao.denomRel)} votos`
+    : modo === 'rankeada' && selecao.tipo !== 'total'
+      ? `Escala rankeada: bairros ordenados pelo percentual do selecionado; mais forte onde ${selecao.rotulo} teve seu maior percentual (${pctText(maxPctSelecionado)})`
+      : modo === 'global' && selecao.tipo !== 'total'
+        ? `Escala global: maior percentual de ${selecao.tipo === 'candidato' ? 'um candidato' : 'um partido'} neste cargo em um bairro (${pctText(selecao.pctGlobalMax)})`
+        : modo === 'global'
+          ? `Escala global: bairro mais forte com ${nf.format(selecao.denomGlobal)} votos`
+          : `Escala do selecionado: bairro mais forte com ${nf.format(selecao.denomRel)} votos`
+
+  const legendaInicio =
+    modo === 'rankeada' || (modo === 'global' && selecao?.tipo !== 'total')
+      ? '0%'
+      : 'menos votos'
+  const legendaFim =
+    modo === 'rankeada'
+      ? pctText(maxPctSelecionado)
+      : modo === 'global' && selecao?.tipo !== 'total'
+        ? pctText(selecao?.pctGlobalMax ?? 0)
+        : 'mais votos'
 
   const candidatoPct =
     candidato && candidato.cargo_id === '11' && totalCargo > 0
       ? candidato.votos_total / totalCargo
       : 1
 
+  const selecionarCandidatoRanking = (item: Candidato) => {
+    if (visao === 'vereador' && rankingCargo) setCargoId(rankingCargo.id)
+    setPartidoId(item.partido)
+    setCandidatoId(item.id)
+    if (visao === 'vereador') setVisao('mapa')
+  }
+
   return (
-    <div className="map-shell">
+    <div className={`map-shell${bairroSelecionado !== null ? ' com-ranking' : ''}`}>
       <div ref={containerRef} className="map" />
 
       <section className="panel">
@@ -1034,7 +1151,10 @@ function App() {
                 options={candidateOptions}
                 onChange={(value) => {
                   setCandidatoId(value)
-                  if (!value) setPartidoId('')
+                  if (!value) {
+                    setPartidoId('')
+                    if (modo === 'rankeada') setModo('relativo')
+                  }
                 }}
                 emptyLabel="Total do cargo"
                 placeholder="Pesquisar por nome, partido, número ou situação…"
@@ -1096,6 +1216,15 @@ function App() {
               </button>
               <button
                 type="button"
+                className={modo === 'rankeada' ? 'ativo' : ''}
+                onClick={() => setModo('rankeada')}
+                disabled={!selecao || selecao.tipo === 'total'}
+                title="Disponível para candidato ou partido"
+              >
+                Relativa rankeada
+              </button>
+              <button
+                type="button"
                 className={modo === 'global' ? 'ativo' : ''}
                 onClick={() => setModo('global')}
               >
@@ -1109,14 +1238,8 @@ function App() {
                 style={{ '--cor': selecao?.cor ?? '#2563eb' } as CSSProperties}
               />
               <div className="legenda-texto">
-                <span>
-                  {modo === 'global' && selecao?.tipo !== 'total' ? '0%' : 'menos votos'}
-                </span>
-                <span>
-                  {modo === 'global' && selecao?.tipo !== 'total'
-                    ? pctText(selecao?.pctGlobalMax ?? 0)
-                    : 'mais votos'}
-                </span>
+                <span>{legendaInicio}</span>
+                <span>{legendaFim}</span>
               </div>
               <div className="legenda-zero">
                 <span className="hatch" />
@@ -1125,7 +1248,7 @@ function App() {
                 </span>
               </div>
               <div className="legenda-nota">
-                {escalaNota} · clique ou passe o mouse no bairro
+                {escalaNota} · clique no bairro para abrir o ranking
               </div>
             </div>
           </>
@@ -1255,6 +1378,70 @@ function App() {
           </details>
         )}
       </section>
+
+      {bairroSelecionado !== null && rankingBairro && rankingCargo && (
+        <aside className="ranking-panel" aria-label={`Ranking em ${rankingBairro.bairro.nome}`}>
+          <header className="ranking-head">
+            <div>
+              <span className="ranking-kicker">Ranking no bairro</span>
+              <h2>{rankingBairro.bairro.nome}</h2>
+              <span className="ranking-sub">
+                {rankingCargo.nome} · {nf.format(rankingBairro.total)} votos válidos
+              </span>
+            </div>
+            <button
+              type="button"
+              className="ranking-close"
+              onClick={() => setBairroSelecionado(null)}
+              title="Fechar ranking"
+              aria-label="Fechar ranking"
+            >
+              ×
+            </button>
+          </header>
+
+          {rankingBairro.total === 0 ? (
+            <p className="ranking-empty">Sem local de votação atribuído a este bairro.</p>
+          ) : rankingBairro.items.length === 0 ? (
+            <p className="ranking-empty">Nenhum candidato recebeu votos neste bairro.</p>
+          ) : (
+            <>
+              <ol className="ranking-list">
+                {rankingBairro.items.map((item) => (
+                  <li key={item.candidato.id}>
+                    <button
+                      type="button"
+                      className={item.candidato.id === candidatoId ? 'selecionado' : ''}
+                      onClick={() => selecionarCandidatoRanking(item.candidato)}
+                      title={item.candidato.status_label}
+                    >
+                      <span className="ranking-pos">{item.rank}</span>
+                      <span
+                        className="ranking-cor"
+                        style={{
+                          background: partyColor(item.candidato.partido, item.candidato.cor),
+                        }}
+                      />
+                      <span className="ranking-nome">
+                        <strong>{item.candidato.nome_urna}</strong>
+                        <span>{item.candidato.partido}</span>
+                      </span>
+                      <span className="ranking-votos">
+                        <b>{nf.format(item.votos)}</b>
+                        <span>{pctText(item.pct)}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <p className="ranking-count">
+                {nf.format(rankingBairro.items.length)} candidato
+                {rankingBairro.items.length === 1 ? '' : 's'} com voto · clique para ver no mapa
+              </p>
+            </>
+          )}
+        </aside>
+      )}
     </div>
   )
 }
