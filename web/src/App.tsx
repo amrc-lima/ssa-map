@@ -1359,14 +1359,8 @@ function App() {
                         if (modo === 'rankeada') setModo('relativo')
                         return
                       }
-                      const item = cargo?.candidatos.find((candidatoItem) => candidatoItem.id === value)
-                      const nextPartido =
-                        cargoId === '11' ? '' : (item?.partido ?? partidoId)
-                      if (cargoId !== '11' && item && item.partido !== partidoId) {
-                        setPartidoId(item.partido)
-                      } else if (cargoId === '11') {
-                        setPartidoId('')
-                      }
+                      const nextPartido = cargoId === '11' ? '' : partidoId
+                      if (cargoId === '11') setPartidoId('')
                       if (cargoId) lembrarSelecaoCargo(cargoId, nextPartido, value)
                     }}
                     emptyLabel="Total do cargo"
