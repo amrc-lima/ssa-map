@@ -150,9 +150,9 @@
     "semantic_hash": ""
   },
   "web/src/App.tsx": {
-    "mtime": 1794309961.1619387,
-    "seen": 1794332625.543932,
-    "ast_hash": "46a332e32e1ae2d30c21250665fba3d6",
+    "mtime": 1794335879.9782805,
+    "seen": 1794339553.7619956,
+    "ast_hash": "23e95e2f9fa26aed1556fc34df082d00",
     "semantic_hash": ""
   },
   "web/src/main.tsx": {
@@ -234,9 +234,9 @@
     "semantic_hash": ""
   },
   "web/index.html": {
-    "mtime": 1794259553.4163747,
-    "seen": 1794260058.3608568,
-    "ast_hash": "ebfaa19a29df1a29c7be36f0ee332c4e",
+    "mtime": 1794335257.0704303,
+    "seen": 1794339553.762017,
+    "ast_hash": "ba2a183a4e518c4a5952bb925355d227",
     "semantic_hash": ""
   },
   "web/public/favicon.svg": {
@@ -16287,6 +16287,12 @@
     "mtime": 1794309112.6801205,
     "seen": 1794332625.5439472,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "web/src/App.backup.tsx": {
+    "mtime": 1794335316.822826,
+    "seen": 1794339553.761994,
+    "ast_hash": "46a332e32e1ae2d30c21250665fba3d6",
     "semantic_hash": ""
   },
   ".opencode/package-lock.json": {
