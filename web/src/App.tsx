@@ -330,6 +330,8 @@ function App() {
   const [buscaBairro, setBuscaBairro] = useState('')
   const [buscaBairroAberta, setBuscaBairroAberta] = useState(false)
   const [painelOculto, setPainelOculto] = useState(false)
+  const [rankingAba, setRankingAba] = useState<'candidatos' | 'partidos'>('candidatos')
+  const [rankingOculto, setRankingOculto] = useState(false)
 
   const cargo = useMemo(
     () => candDoc?.cargos.find((item) => item.id === cargoId) ?? null,
@@ -686,7 +688,7 @@ function App() {
     const bairro = votosDoc.bairros.find((item) => item.id === bairroSelecionado)
     if (!bairro) return null
     const total = totaisPorCargo.get(rankingCargo.id)?.[String(bairroSelecionado)] ?? 0
-    const items = rankingCargo.candidatos
+    const candidatos = rankingCargo.candidatos
       .map((item) => ({
         candidato: item,
         votos: votosDoc.por_candidato[item.id]?.[String(bairroSelecionado)] ?? 0,
@@ -698,7 +700,49 @@ function App() {
         rank: index + 1,
         pct: total > 0 ? item.votos / total : 0,
       }))
-    return { bairro, total, items }
+
+    const partidosMap = new Map<
+      string,
+      { sigla: string; cor: string; votos: number; candidatos: number; legenda: number }
+    >()
+    for (const item of candidatos) {
+      const sigla = item.candidato.partido
+      const atual = partidosMap.get(sigla) ?? {
+        sigla,
+        cor: partyColor(sigla, item.candidato.cor),
+        votos: 0,
+        candidatos: 0,
+        legenda: 0,
+      }
+      atual.votos += item.votos
+      atual.candidatos += 1
+      partidosMap.set(sigla, atual)
+    }
+    if (rankingCargo.id === '13') {
+      for (const [sigla, votosPorBairro] of Object.entries(votosDoc.legenda ?? {})) {
+        const legenda = votosPorBairro[String(bairroSelecionado)] ?? 0
+        if (legenda <= 0) continue
+        const atual = partidosMap.get(sigla) ?? {
+          sigla,
+          cor: partyColor(sigla),
+          votos: 0,
+          candidatos: 0,
+          legenda: 0,
+        }
+        atual.legenda += legenda
+        atual.votos += legenda
+        partidosMap.set(sigla, atual)
+      }
+    }
+    const partidos = [...partidosMap.values()]
+      .sort((a, b) => b.votos - a.votos || a.sigla.localeCompare(b.sigla, 'pt-BR'))
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1,
+        pct: total > 0 ? item.votos / total : 0,
+      }))
+
+    return { bairro, total, candidatos, partidos }
   }, [bairroSelecionado, rankingCargo, votosDoc, totaisPorCargo])
 
   const resumo = useMemo<Resumo | null>(() => {
@@ -865,7 +909,11 @@ function App() {
         if (!feature) return
         const props = (feature.properties ?? {}) as Record<string, unknown>
         const clickedId = Number(props.id)
-        if (Number.isFinite(clickedId)) setBairroSelecionado(clickedId)
+        if (Number.isFinite(clickedId)) {
+          setBairroSelecionado(clickedId)
+          setRankingOculto(false)
+          setRankingAba('candidatos')
+        }
         const html = String(props.popupHtml ?? '')
         if (!html) return
         clickPopupRef.current?.remove()
@@ -1095,6 +1143,8 @@ function App() {
     const feature = geojson?.features.find((item) => Number(item.properties.id) === id)
     if (!map || !feature) return
     setBairroSelecionado(id)
+    setRankingOculto(false)
+    setRankingAba('candidatos')
     const bounds = new LngLatBounds()
     extendBounds(bounds, feature.geometry)
     if (bounds.isEmpty()) return
@@ -1489,61 +1539,133 @@ function App() {
       </section>
 
       {bairroSelecionado !== null && rankingBairro && rankingCargo && (
-        <aside className="ranking-panel" aria-label={`Ranking em ${rankingBairro.bairro.nome}`}>
+        <aside
+          className={`ranking-panel${rankingOculto ? ' oculto' : ''}`}
+          aria-label={`Ranking em ${rankingBairro.bairro.nome}`}
+        >
           <header className="ranking-head">
             <div>
               <span className="ranking-kicker">Ranking no bairro</span>
               <h2>{rankingBairro.bairro.nome}</h2>
-              <span className="ranking-sub">
-                {rankingCargo.nome} · {nf.format(rankingBairro.total)} votos válidos
-              </span>
+              {!rankingOculto && (
+                <span className="ranking-sub">
+                  {rankingCargo.nome} · {nf.format(rankingBairro.total)} votos válidos
+                </span>
+              )}
             </div>
-            <button
-              type="button"
-              className="ranking-close"
-              onClick={() => setBairroSelecionado(null)}
-              title="Fechar ranking"
-              aria-label="Fechar ranking"
-            >
-              ×
-            </button>
+            <div className="ranking-actions">
+              <button
+                type="button"
+                className="ranking-minimize"
+                onClick={() => setRankingOculto((v) => !v)}
+                title={rankingOculto ? 'Mostrar ranking' : 'Minimizar ranking'}
+                aria-label={rankingOculto ? 'Mostrar ranking' : 'Minimizar ranking'}
+                aria-expanded={!rankingOculto}
+              >
+                {rankingOculto ? 'Mostrar' : 'Minimizar'}
+              </button>
+              <button
+                type="button"
+                className="ranking-close"
+                onClick={() => setBairroSelecionado(null)}
+                title="Fechar ranking"
+                aria-label="Fechar ranking"
+              >
+                ×
+              </button>
+            </div>
           </header>
 
-          {rankingBairro.total === 0 ? (
-            <p className="ranking-empty">Sem local de votação atribuído a este bairro.</p>
-          ) : rankingBairro.items.length === 0 ? (
-            <p className="ranking-empty">Nenhum candidato recebeu votos neste bairro.</p>
-          ) : (
+          {!rankingOculto && (
             <>
-              <ol className="ranking-list">
-                {rankingBairro.items.map((item) => (
-                  <li key={item.candidato.id}>
-                    <button
-                      type="button"
-                      className={item.candidato.id === candidatoId ? 'selecionado' : ''}
-                      onClick={() => selecionarCandidatoRanking(item.candidato)}
-                      title={item.candidato.status_label}
-                    >
-                      <span className="ranking-pos">{item.rank}</span>
-                      <span
-                        className="ranking-cor"
-                        style={{ background: partyColor(item.candidato.partido, item.candidato.cor) }}
-                      />
-                      <span className="ranking-nome">
-                        <strong>{item.candidato.nome_urna}</strong>
-                        <span>{item.candidato.partido}</span>
-                      </span>
-                      <span className="ranking-votos">
-                        <b>{nf.format(item.votos)}</b>
-                        <span>{pctText(item.pct)}</span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ol>
-              <p className="ranking-count">
-                {nf.format(rankingBairro.items.length)} candidato{rankingBairro.items.length === 1 ? '' : 's'} com voto · clique para ver no mapa
-              </p>
+              <div className="ranking-tabs">
+                <button
+                  type="button"
+                  className={rankingAba === 'candidatos' ? 'ativo' : ''}
+                  onClick={() => setRankingAba('candidatos')}
+                >
+                  Candidatos
+                </button>
+                <button
+                  type="button"
+                  className={rankingAba === 'partidos' ? 'ativo' : ''}
+                  onClick={() => setRankingAba('partidos')}
+                >
+                  Partidos
+                </button>
+              </div>
+
+              {rankingBairro.total === 0 ? (
+                <p className="ranking-empty">Sem local de votação atribuído a este bairro.</p>
+              ) : rankingAba === 'candidatos' ? (
+                rankingBairro.candidatos.length === 0 ? (
+                  <p className="ranking-empty">Nenhum candidato recebeu votos neste bairro.</p>
+                ) : (
+                  <>
+                    <ol className="ranking-list">
+                      {rankingBairro.candidatos.map((item) => (
+                        <li key={item.candidato.id}>
+                          <button
+                            type="button"
+                            className={item.candidato.id === candidatoId ? 'selecionado' : ''}
+                            onClick={() => selecionarCandidatoRanking(item.candidato)}
+                            title={item.candidato.status_label}
+                          >
+                            <span className="ranking-pos">{item.rank}</span>
+                            <span
+                              className="ranking-cor"
+                              style={{ background: partyColor(item.candidato.partido, item.candidato.cor) }}
+                            />
+                            <span className="ranking-nome">
+                              <strong>{item.candidato.nome_urna}</strong>
+                              <span>{item.candidato.partido}</span>
+                            </span>
+                            <span className="ranking-votos">
+                              <b>{nf.format(item.votos)}</b>
+                              <span>{pctText(item.pct)}</span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                    <p className="ranking-count">
+                      {nf.format(rankingBairro.candidatos.length)} candidato
+                      {rankingBairro.candidatos.length === 1 ? '' : 's'} com voto · clique para ver no mapa
+                    </p>
+                  </>
+                )
+              ) : rankingBairro.partidos.length === 0 ? (
+                <p className="ranking-empty">Nenhum partido recebeu votos neste bairro.</p>
+              ) : (
+                <>
+                  <ol className="ranking-list partidos">
+                    {rankingBairro.partidos.map((item) => (
+                      <li key={item.sigla}>
+                        <div className="ranking-row">
+                          <span className="ranking-pos">{item.rank}</span>
+                          <span className="ranking-cor" style={{ background: item.cor }} />
+                          <span className="ranking-nome">
+                            <strong>{item.sigla}</strong>
+                            <span>
+                              {item.candidatos} candidato{item.candidatos === 1 ? '' : 's'}
+                              {item.legenda > 0 ? ` · legenda ${nf.format(item.legenda)}` : ''}
+                            </span>
+                          </span>
+                          <span className="ranking-votos">
+                            <b>{nf.format(item.votos)}</b>
+                            <span>{pctText(item.pct)}</span>
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="ranking-count">
+                    {nf.format(rankingBairro.partidos.length)} partido
+                    {rankingBairro.partidos.length === 1 ? '' : 's'}
+                    {rankingCargo.id === '13' ? ' · inclui votos de legenda' : ''}
+                  </p>
+                </>
+              )}
             </>
           )}
         </aside>

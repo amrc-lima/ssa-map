@@ -782,6 +782,31 @@ select {
   color: #6b7280;
 }
 
+.ranking-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.ranking-minimize {
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ranking-minimize:hover {
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
 .ranking-close {
   flex: 0 0 auto;
   width: 30px;
@@ -794,6 +819,42 @@ select {
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
+}
+
+.ranking-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.ranking-tabs button {
+  flex: 1 1 0;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ranking-tabs button.ativo {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.ranking-panel.oculto {
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  max-height: none;
+  overflow: visible;
+}
+
+.ranking-panel.oculto .ranking-head h2 {
+  font-size: 20px;
 }
 
 .ranking-empty {
@@ -811,7 +872,8 @@ select {
   list-style: none;
 }
 
-.ranking-list button {
+.ranking-list button,
+.ranking-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -822,6 +884,9 @@ select {
   background: #fff;
   color: inherit;
   text-align: left;
+}
+
+.ranking-list button {
   cursor: pointer;
 }
 
@@ -833,6 +898,10 @@ select {
 .ranking-list button.selecionado {
   border-color: #93c5fd;
   background: #eff6ff;
+}
+
+.ranking-row {
+  cursor: default;
 }
 
 .ranking-pos {
@@ -998,6 +1067,12 @@ select {
     width: auto;
     max-height: 52vh;
     padding: 14px;
+  }
+
+  .ranking-panel.oculto {
+    left: auto;
+    width: fit-content;
+    max-width: calc(100vw - 20px);
   }
 
   .ranking-head h2 {
