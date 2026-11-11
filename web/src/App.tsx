@@ -31,7 +31,7 @@ type Candidato = {
   partido_numero: string
   agremiacao: string
   agremiacao_nome: string
-  agremiacao_tipo: 'PARTIDO' | 'FEDERAÇÃO'
+  agremiacao_tipo: 'PARTIDO' | 'FEDERA├ç├âO'
   agremiacao_votos: number | null
   agremiacao_qp: number | null
   coeficiente: number | null
@@ -190,7 +190,7 @@ function statusRingColor(candidato: Candidato) {
 
 function ringTitle(candidato: Candidato) {
   if (candidato.resultado === '#NULO') {
-    return 'Sem resultado eleitoral (indeferido, cassado ou renúncia)'
+    return 'Sem resultado eleitoral (indeferido, cassado ou ren├║ncia)'
   }
   return candidato.status_label
 }
@@ -198,7 +198,7 @@ function ringTitle(candidato: Candidato) {
 function statusBadge(candidato: Candidato): { badge: string; tone: StatusTone } {
   switch (candidato.status) {
     case 'eleito_proprios':
-      return { badge: 'Próprios', tone: 'eleito' }
+      return { badge: 'Pr├│prios', tone: 'eleito' }
     case 'eleito_coeficiente':
       return { badge: 'Coef.', tone: 'coeficiente' }
     case 'eleito':
@@ -208,7 +208,7 @@ function statusBadge(candidato: Candidato): { badge: string; tone: StatusTone } 
     case 'nao_eleito_partido':
       return { badge: 'Partido', tone: 'alerta' }
     case 'nao_eleito':
-      return { badge: candidato.suplente ? 'Suplente' : 'Não eleito', tone: 'nao' }
+      return { badge: candidato.suplente ? 'Suplente' : 'N├úo eleito', tone: 'nao' }
     default:
       return { badge: '', tone: 'nao' }
   }
@@ -261,7 +261,7 @@ function makeHatchImage() {
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas 2D indisponível')
+  if (!ctx) throw new Error('Canvas 2D indispon├¡vel')
   ctx.clearRect(0, 0, size, size)
   ctx.strokeStyle = '#475569'
   ctx.lineWidth = 1.1
@@ -293,6 +293,9 @@ function Avatar({
 }) {
   const clamped = Math.max(0, Math.min(1, pct))
   const [erroFoto, setErroFoto] = useState(false)
+  useEffect(() => {
+    setErroFoto(false)
+  }, [foto])
   const src = foto && !erroFoto ? `${BASE}${foto}` : null
   return (
     <span
@@ -711,6 +714,28 @@ function App() {
     ? (bairrosOrdenados.find((item) => String(item.id) === String(maxPctSelecionadoInfo.bairroId))?.nome ?? '')
     : ''
 
+  const maxVotosSelecionadoInfo = useMemo(() => {
+    if (!selecao || selecao.tipo === 'total') return { votos: 0, bairroId: null as string | null }
+    let max = 0
+    let bairroId: string | null = null
+    for (const [id, votos] of Object.entries(selecao.votos)) {
+      if (votos > max) {
+        max = votos
+        bairroId = id
+      }
+    }
+    return { votos: max, bairroId }
+  }, [selecao])
+
+  const bairroMaxVotos = maxVotosSelecionadoInfo.bairroId
+    ? (bairrosOrdenados.find((item) => String(item.id) === String(maxVotosSelecionadoInfo.bairroId))?.nome ?? '')
+    : ''
+
+  const topsCargoAtual = useMemo(
+    () => campeoesPorCargo.get(cargoId)?.tops ?? new Map<string, TopItem>(),
+    [campeoesPorCargo, cargoId],
+  )
+
   const rankingBairro = useMemo(() => {
     if (bairroSelecionado === null || !rankingCargo || !votosDoc) return null
     const bairro = votosDoc.bairros.find((item) => item.id === bairroSelecionado)
@@ -784,15 +809,15 @@ function App() {
     if (!selecao) return null
     if (selecao.tipo === 'candidato' && candidato) {
       const nota =
-        candidato.agremiacao_tipo === 'FEDERAÇÃO'
+        candidato.agremiacao_tipo === 'FEDERA├ç├âO'
           ? candidato.cargo_id === '13'
-            ? `Federação: ${candidato.agremiacao_nome} · ${nf.format(candidato.agremiacao_votos ?? 0)} votos · ${candidato.agremiacao_qp ?? 0} QP`
-            : `Federação: ${candidato.agremiacao_nome}`
+            ? `Federa├º├úo: ${candidato.agremiacao_nome} ┬À ${nf.format(candidato.agremiacao_votos ?? 0)} votos ┬À ${candidato.agremiacao_qp ?? 0} QP`
+            : `Federa├º├úo: ${candidato.agremiacao_nome}`
           : candidato.partido_nome
       return {
         cor: selecao.cor,
         titulo: candidato.nome_urna,
-        linha: `${candidato.partido} · ${candidato.cargo} · ${nf.format(candidato.votos_total)} votos`,
+        linha: `${candidato.partido} ┬À ${candidato.cargo} ┬À ${nf.format(candidato.votos_total)} votos`,
         nota,
         status: candidato.status_label,
         statusTone: statusTone(candidato.status),
@@ -802,9 +827,9 @@ function App() {
     if (selecao.tipo === 'partido' && partido) {
       return {
         cor: selecao.cor,
-        titulo: `${partido.sigla} — ${partido.nome}`,
-        linha: `${nf.format(partido.candidatos)} candidato${partido.candidatos > 1 ? 's' : ''} · ${nf.format(partido.votos_total)} votos · ${nf.format(partido.eleitos)} eleito${partido.eleitos === 1 ? '' : 's'}`,
-        nota: incluirLegenda ? 'Soma dos candidatos do partido + votos de legenda' : 'Partido com um único candidato ao cargo',
+        titulo: `${partido.sigla} ÔÇö ${partido.nome}`,
+        linha: `${nf.format(partido.candidatos)} candidato${partido.candidatos > 1 ? 's' : ''} ┬À ${nf.format(partido.votos_total)} votos ┬À ${nf.format(partido.eleitos)} eleito${partido.eleitos === 1 ? '' : 's'}`,
+        nota: incluirLegenda ? 'Soma dos candidatos do partido + votos de legenda' : 'Partido com um ├║nico candidato ao cargo',
       }
     }
     return {
@@ -819,7 +844,7 @@ function App() {
     () =>
       partidos.map((item) => ({
         value: item.sigla,
-        label: `${item.sigla} — ${item.nome} (${item.numero}) · ${nf.format(item.votos_total)}`,
+        label: `${item.sigla} ÔÇö ${item.nome} (${item.numero}) ┬À ${nf.format(item.votos_total)}`,
         search: `${item.sigla} ${item.nome} ${item.numero}`,
         color: item.cor,
       })),
@@ -832,8 +857,8 @@ function App() {
         const badge = statusBadge(item)
         return {
           value: item.id,
-          label: `${item.nome_urna} · ${item.partido} (${item.numero}) · ${nf.format(item.votos_total)}`,
-          search: `${item.nome} ${item.nome_urna} ${item.partido} ${item.partido_nome} ${item.numero} ${item.status_label} ${item.suplente ? 'suplente' : ''} ${item.eleito ? 'eleito' : 'não eleito'}`,
+          label: `${item.nome_urna} ┬À ${item.partido} (${item.numero}) ┬À ${nf.format(item.votos_total)}`,
+          search: `${item.nome} ${item.nome_urna} ${item.partido} ${item.partido_nome} ${item.numero} ${item.status_label} ${item.suplente ? 'suplente' : ''} ${item.eleito ? 'eleito' : 'n├úo eleito'}`,
           color: partyColor(item.partido, item.cor),
           badge: badge.badge,
           tone: badge.tone,
@@ -846,7 +871,7 @@ function App() {
     let alive = true
     const getJson = async <T,>(url: string): Promise<T> => {
       const response = await fetch(url)
-      if (!response.ok) throw new Error(`${url} → HTTP ${response.status}`)
+      if (!response.ok) throw new Error(`${url} ÔåÆ HTTP ${response.status}`)
       return (await response.json()) as T
     }
     Promise.all([
@@ -1054,13 +1079,13 @@ function App() {
       const q = qualidade.get(id) ?? null
       const notaQualidade =
         typeof q === 'number' && q < 0.999
-          ? `${Math.round(q * 100)}% das seções deste bairro localizadas por coordenada; o restante por nome/aliase do TSE`
+          ? `${Math.round(q * 100)}% das se├º├Áes deste bairro localizadas por coordenada; o restante por nome/aliase do TSE`
           : ''
 
       if (visao === 'campeoes') {
         const top = topsCampeao.get(String(id))
         if (!top) {
-          const linha = 'Sem local de votação atribuído a este bairro'
+          const linha = 'Sem local de vota├º├úo atribu├¡do a este bairro'
           return {
             type: 'Feature' as const,
             properties: {
@@ -1080,8 +1105,8 @@ function App() {
           }
         }
         const intensidade = maxTopPctCampeao > 0 ? Math.min(1, top.pct / maxTopPctCampeao) : 0
-        const linha = `${top.candidato.nome_urna} · ${top.candidato.partido}`
-        const detalhe = `${nf.format(top.votos)} votos · ${pctText(top.pct)} dos votos válidos · 1º no bairro`
+        const linha = `${top.candidato.nome_urna} ┬À ${top.candidato.partido}`
+        const detalhe = `${nf.format(top.votos)} votos ┬À ${pctText(top.pct)} dos votos v├ílidos ┬À 1┬║ no bairro`
         return {
           type: 'Feature' as const,
           properties: {
@@ -1094,8 +1119,8 @@ function App() {
             qualidade: q,
             rotulo: linha,
             cor: partyColor(top.candidato.partido, top.candidato.cor),
-            popupHtml: popupMarkup(nome, `${linha} — ${detalhe}`, notaQualidade || undefined),
-            hoverHtml: hoverMarkup(nome, `${linha} · ${pctText(top.pct)}`),
+            popupHtml: popupMarkup(nome, `${linha} ÔÇö ${detalhe}`, notaQualidade || undefined),
+            hoverHtml: hoverMarkup(nome, `${linha} ┬À ${pctText(top.pct)}`),
           },
           geometry: feature.geometry,
         }
@@ -1106,26 +1131,28 @@ function App() {
       const total = agregados.total[String(id)] ?? 0
       const pct = total > 0 ? votos / total : 0
       const rank = ranks[String(id)] ?? 0
-      const rankTxt = votos > 0 && rank > 0 ? `${rank}º` : ''
+      const rankTxt = votos > 0 && rank > 0 ? `${rank}┬║` : ''
       let linha = ''
       if (total === 0) {
-        linha = 'Sem local de votação atribuído a este bairro'
+        linha = 'Sem local de vota├º├úo atribu├¡do a este bairro'
       } else if (selecao.tipo === 'total') {
         linha = `${nf.format(votos)} votos no bairro`
       } else if (votos === 0) {
         linha = `0 votos para ${selecao.rotulo} · ${pctText(pct)} dos votos válidos`
       } else {
         const posicao = selecao.tipo === 'partido' ? `${rankTxt} entre partidos` : `${rankTxt} no bairro`
-        linha = `${nf.format(votos)} votos · ${pctText(pct)} dos votos válidos${rankTxt ? ` · ${posicao}` : ''}`
+        linha = `${nf.format(votos)} votos · ${pctText(pct)} dos votos válidos${rankTxt ? ` ┬À ${posicao}` : ''}`
       }
       let intensidade = 0
       if (votos > 0) {
         if (modo === 'rankeada') {
           if (maxPctSelecionado > 0) intensidade = pct / maxPctSelecionado
         } else if (modo === 'global') {
-          const escala = selecao.tipo === 'total' ? selecao.denomGlobal : selecao.pctGlobalMax
-          if (escala > 0) {
-            intensidade = (selecao.tipo === 'total' ? votos : pct) / escala
+          if (selecao.tipo === 'total') {
+            if (selecao.denomGlobal > 0) intensidade = votos / selecao.denomGlobal
+          } else {
+            const topPctBairro = topsCargoAtual.get(String(id))?.pct ?? 0
+            if (topPctBairro > 0) intensidade = pct / topPctBairro
           }
         } else if (selecao.denomRel > 0) {
           intensidade = votos / selecao.denomRel
@@ -1179,6 +1206,7 @@ function App() {
     maxPctSelecionado,
     topsCampeao,
     maxTopPctCampeao,
+    topsCargoAtual,
   ])
 
   const lembrarSelecaoCargo = (id: string, nextPartidoId: string, nextCandidatoId: string) => {
@@ -1222,8 +1250,8 @@ function App() {
     if (visao === 'campeoes') {
       const top = topsCampeao.get(String(id))
       const linha = top
-        ? `${top.candidato.nome_urna} · ${top.candidato.partido} — ${nf.format(top.votos)} votos · ${pctText(top.pct)} · 1º no bairro`
-        : 'Sem local de votação atribuído a este bairro'
+        ? `${top.candidato.nome_urna} ┬À ${top.candidato.partido} ÔÇö ${nf.format(top.votos)} votos ┬À ${pctText(top.pct)} ┬À 1┬║ no bairro`
+        : 'Sem local de vota├º├úo atribu├¡do a este bairro'
       clickPopupRef.current?.remove()
       clickPopupRef.current = new Popup({ closeButton: true, maxWidth: '320px' })
         .setLngLat(bounds.getCenter())
@@ -1246,10 +1274,10 @@ function App() {
     : modo === 'rankeada' && selecao.tipo !== 'total'
       ? `Foco no selecionado (%): compara bairros pelo percentual de votos de ${selecao.rotulo}; 100% = bairro onde foi mais forte (${pctText(maxPctSelecionado)}${bairroMaxPct ? `, ${bairroMaxPct}` : ''}).`
       : modo === 'global' && selecao.tipo !== 'total'
-        ? `Comparação no cargo (%): usa o maior percentual de ${selecao.tipo === 'candidato' ? 'um candidato' : 'um partido'} no cargo em um bairro como referência (${pctText(selecao.pctGlobalMax)}).`
+        ? `Comparação no cargo (% por bairro): em cada bairro, compara o percentual de ${selecao.rotulo} com o do candidato mais votado (percentual) naquele bairro; 100% = empatou/liderou no bairro.`
         : modo === 'global'
           ? `Comparação no cargo (votos): usa o bairro com mais votos no cargo como referência (${nf.format(selecao.denomGlobal)}).`
-          : `Foco no selecionado (votos): usa o melhor bairro de ${selecao.rotulo} como referência (${nf.format(selecao.denomRel)} votos).`
+          : `Foco no selecionado (votos): usa o melhor bairro de ${selecao.rotulo}${bairroMaxVotos ? ` (${bairroMaxVotos})` : ''} como referência (${nf.format(selecao.denomRel)} votos).`
 
   const legendaInicio =
     modo === 'rankeada' || (modo === 'global' && selecao?.tipo !== 'total') ? '0% (menor)' : '0 votos (menor)'
@@ -1257,9 +1285,8 @@ function App() {
     modo === 'rankeada'
       ? `${pctText(maxPctSelecionado)} (máx. do selecionado)`
       : modo === 'global' && selecao?.tipo !== 'total'
-        ? `${pctText(selecao?.pctGlobalMax ?? 0)} (máx. no cargo)`
+        ? '100% (líder do bairro)'
         : `${nf.format(selecao?.denomRel ?? selecao?.denomGlobal ?? 0)} (máx.)`
-
   const candidatoPct =
     candidato && candidato.cargo_id === '11' && totalCargo > 0 ? candidato.votos_total / totalCargo : 1
 
@@ -1282,7 +1309,7 @@ function App() {
         <input
           type="text"
           value={buscaBairro}
-          placeholder="Buscar bairro…"
+          placeholder="Buscar bairroÔÇª"
           onChange={(event) => {
             setBuscaBairro(event.target.value)
             setBuscaBairroAberta(true)
@@ -1306,9 +1333,9 @@ function App() {
       <section className={`panel${painelOculto ? ' oculto' : ''}`}>
         <header className="panel-header">
           <div className="panel-title">
-            <p className="eyebrow">Salvador · Eleições 2024</p>
+            <p className="eyebrow">Salvador ┬À Elei├º├Áes 2024</p>
             <h1>Mapa Eleitoral</h1>
-            {!painelOculto && <p className="sub">1º turno · dados oficiais do TSE</p>}
+            {!painelOculto && <p className="sub">1┬║ turno ┬À dados oficiais do TSE</p>}
           </div>
           <button
             type="button"
@@ -1337,7 +1364,7 @@ function App() {
                 className={visao === 'campeoes' ? 'ativo' : ''}
                 onClick={() => setVisao('campeoes')}
               >
-                Campeões
+                Campe├Áes
               </button>
             </div>
 
@@ -1364,7 +1391,7 @@ function App() {
                       options={partyOptions}
                       onChange={trocarPartido}
                       emptyLabel="--"
-                      placeholder="Pesquisar por sigla, nome ou número…"
+                      placeholder="Pesquisar por sigla, nome ou n├║meroÔÇª"
                     />
                   )}
 
@@ -1386,7 +1413,7 @@ function App() {
                       if (cargoId) lembrarSelecaoCargo(cargoId, nextPartido, value)
                     }}
                     emptyLabel="Total do cargo"
-                    placeholder="Pesquisar por nome, partido, número ou situação…"
+                    placeholder="Pesquisar por nome, partido, n├║mero ou situa├º├úoÔÇª"
                   />
                 </div>
 
@@ -1415,7 +1442,7 @@ function App() {
                         fill={partido.cor}
                         ring={partido.cor}
                         pct={1}
-                        title={`${partido.sigla} — ${partido.nome}`}
+                        title={`${partido.sigla} ÔÇö ${partido.nome}`}
                       />
                     ) : (
                       <span className="swatch" style={{ background: resumo.cor }} />
@@ -1446,7 +1473,7 @@ function App() {
                     className={modo === 'rankeada' ? 'ativo' : ''}
                     onClick={() => setModo('rankeada')}
                     disabled={!selecao || selecao.tipo === 'total'}
-                    title="Intensidade em %: compara bairros pelo percentual do candidato/partido selecionado; só para candidato ou partido."
+                    title="Intensidade em %: compara bairros pelo percentual do candidato/partido selecionado; s├│ para candidato ou partido."
                   >
                     Foco no selecionado (%)
                   </button>
@@ -1454,7 +1481,7 @@ function App() {
                     type="button"
                     className={modo === 'global' ? 'ativo' : ''}
                     onClick={() => setModo('global')}
-                    title="Compara com o maior valor do cargo em um bairro (votos ou %, conforme a seleção)."
+                    title="Para candidato/partido: compara o % do selecionado com o % do líder em cada bairro. Para total do cargo: compara votos por bairro."
                   >
                     Comparação no cargo
                   </button>
@@ -1468,7 +1495,7 @@ function App() {
                   </div>
                   <div className="legenda-zero">
                     <span className="hatch" />
-                    <span>{selecao?.tipo === 'total' ? 'sem local de votação' : 'sem votos para a seleção'}</span>
+                    <span>{selecao?.tipo === 'total' ? 'sem local de vota├º├úo' : 'sem votos para a sele├º├úo'}</span>
                   </div>
                   <div className="legenda-nota">{escalaNota}</div>
                 </div>
@@ -1494,14 +1521,14 @@ function App() {
                 </div>
 
                 <p className="view-intro">
-                  Campeões por bairro: candidato mais votado no cargo selecionado. A cor indica o partido e a opacidade o percentual.
+                  Campe├Áes por bairro: candidato mais votado no cargo selecionado. A cor indica o partido e a opacidade o percentual.
                 </p>
 
                 <div className="legenda">
                   <div className="legenda-nota">Escala de opacidade: maior percentual entre os bairros ({pctText(maxTopPctCampeao)}).</div>
                   <div className="legenda-zero">
                     <span className="hatch" />
-                    <span>sem local de votação</span>
+                    <span>sem local de vota├º├úo</span>
                   </div>
                   <div className="top-partidos">
                     {topPartidosCampeao.map((item) => (
@@ -1519,7 +1546,7 @@ function App() {
                     className="filtro"
                     value={filtroCampeoes}
                     onChange={(event) => setFiltroCampeoes(event.target.value)}
-                    placeholder={campeaoAba === 'candidatos' ? 'Candidato, partido ou bairro…' : 'Bairro ou campeão…'}
+                    placeholder={campeaoAba === 'candidatos' ? 'Candidato, partido ou bairroÔÇª' : 'Bairro ou campe├úoÔÇª'}
                   />
                 </label>
 
@@ -1539,12 +1566,12 @@ function App() {
                           />
                           <div className="lista-texto">
                             <strong>
-                              {item.candidato.nome_urna} · {item.candidato.partido}
+                              {item.candidato.nome_urna} ┬À {item.candidato.partido}
                             </strong>
                             <span>
-                              Campeão em {item.bairros} bairro{item.bairros === 1 ? '' : 's'}
+                              Campe├úo em {item.bairros} bairro{item.bairros === 1 ? '' : 's'}
                               {item.bairrosNomes.length
-                                ? `: ${item.bairrosNomes.join(', ')}${item.bairros > item.bairrosNomes.length ? '…' : ''}`
+                                ? `: ${item.bairrosNomes.join(', ')}${item.bairros > item.bairrosNomes.length ? 'ÔÇª' : ''}`
                                 : ''}
                             </span>
                           </div>
@@ -1575,7 +1602,7 @@ function App() {
                             <span className="lista-texto">
                               <strong>{item.nome}</strong>
                               <span>
-                                {top ? `${top.candidato.nome_urna} · ${top.candidato.partido}` : 'Sem local de votação'}
+                                {top ? `${top.candidato.nome_urna} ┬À ${top.candidato.partido}` : 'Sem local de vota├º├úo'}
                               </span>
                             </span>
                             {top && <span className="lista-pct">{pctText(top.pct)}</span>}
@@ -1588,7 +1615,7 @@ function App() {
 
                 <p className="nota-lista">
                   {campeaoAba === 'candidatos'
-                    ? `${campeoesCandidatosFiltrados.length} campeões`
+                    ? `${campeoesCandidatosFiltrados.length} campe├Áes`
                     : `${campeoesBairrosFiltrados.length} de ${campeoesBairros.length} bairros`}
                 </p>
               </div>
@@ -1598,46 +1625,46 @@ function App() {
               <details className="sobre">
                 <summary>Sobre os dados e cobertura</summary>
                 <p>
-                  Votos por <strong>local de votação</strong> (seção eleitoral), não por residência do eleitor.
-                  A distribuição por bairro é uma <strong>aproximação</strong> (local → bairro).
+                  Votos por <strong>local de vota├º├úo</strong> (se├º├úo eleitoral), n├úo por resid├¬ncia do eleitor.
+                  A distribui├º├úo por bairro ├® uma <strong>aproxima├º├úo</strong> (local ÔåÆ bairro).
                 </p>
                 {meta && (
                   <>
                     <p>
-                      <strong>Cobertura:</strong> {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribuídos a bairro
+                      <strong>Cobertura:</strong> {Math.round(meta.cobertura_votos * 100)}% dos votos de candidatos atribu├¡dos a bairro
                       ({nf.format(meta.votos_atribuidos_bairro ?? 0)} de {nf.format(meta.votos_candidatos ?? 0)}).{' '}
-                      {nf.format(meta.secoes_mapeadas ?? 0)}/{nf.format(meta.secoes_total ?? 0)} seções mapeadas em {nf.format(meta.locais_distintos ?? 0)} locais.
+                      {nf.format(meta.secoes_mapeadas ?? 0)}/{nf.format(meta.secoes_total ?? 0)} se├º├Áes mapeadas em {nf.format(meta.locais_distintos ?? 0)} locais.
                     </p>
                     <p>
-                      <strong>Método de atribuição:</strong> {nf.format(meta.secoes_por_coordenada ?? 0)} seções por coordenada do local,{' '}
-                      {nf.format(meta.secoes_por_alias ?? 0)} por alias de nome, {nf.format(meta.secoes_por_nome_prioritario ?? 0)} por nome prioritário,{' '}
+                      <strong>M├®todo de atribui├º├úo:</strong> {nf.format(meta.secoes_por_coordenada ?? 0)} se├º├Áes por coordenada do local,{' '}
+                      {nf.format(meta.secoes_por_alias ?? 0)} por alias de nome, {nf.format(meta.secoes_por_nome_prioritario ?? 0)} por nome priorit├írio,{' '}
                       {nf.format(meta.secoes_por_nome ?? 0)} por nome exato, {nf.format(meta.secoes_sem_bairro ?? 0)} sem bairro.
                     </p>
                     <p>
                       <strong>Base:</strong> {nf.format(meta.bairros ?? 0)} bairros oficiais (ArcGIS vigente) e {nf.format(meta.candidatos ?? 0)} candidatos.
-                      Percentuais usam votos válidos do cargo no bairro (candidatos + legenda no vereador).
+                      Percentuais usam votos v├ílidos do cargo no bairro (candidatos + legenda no vereador).
                     </p>
                     <p>
-                      <strong>Bairros sem votos/local atribuído ({bairrosSemVoto.length}):</strong>{' '}
+                      <strong>Bairros sem votos/local atribu├¡do ({bairrosSemVoto.length}):</strong>{' '}
                       {bairrosSemVoto.length ? bairrosSemVoto.join(', ') : 'nenhum'}.
                     </p>
                     {meta.coeficiente_eleitoral ? (
                       <p>
                         <strong>Vereador (proporcional):</strong> {nf.format(meta.cadeiras_vereador ?? 0)} cadeiras, QE {nf.format(meta.coeficiente_eleitoral)},
-                        piso 10% do QE ({nf.format(meta.limite_10_coeficiente ?? 0)}). Cadeiras pertencem à agremiação (partido/federação), não diretamente ao partido em federações.
+                        piso 10% do QE ({nf.format(meta.limite_10_coeficiente ?? 0)}). Cadeiras pertencem ├á agremia├º├úo (partido/federa├º├úo), n├úo diretamente ao partido em federa├º├Áes.
                       </p>
                     ) : null}
                   </>
                 )}
                 <p>
                   <strong>Modos de cor (intensidade):</strong> “Foco no selecionado (votos)” compara por votos absolutos com o melhor bairro da seleção;
-                  “Foco no selecionado (%)” compara pelo percentual do selecionado em cada bairro; “Comparação no cargo” compara com o maior valor do cargo no município.
+                  “Foco no selecionado (%)” compara pelo percentual do selecionado em cada bairro; “Comparação no cargo” compara, em cada bairro, o percentual do selecionado com o do líder do cargo naquele bairro (no total do cargo, compara votos por bairro).
                 </p>
                 <p>
-                  Avatares exibem foto oficial do TSE quando disponível (com iniciais como alternativa). Clique em um bairro para ver o ranking (candidatos e agremiações).
+                  Avatares exibem foto oficial do TSE quando dispon├¡vel (com iniciais como alternativa). Clique em um bairro para ver o ranking (candidatos e agremia├º├Áes).
                 </p>
                 <p className="fonte">
-                  Fonte: TSE Dados Abertos (Salvador/BA, 2024, 1º turno) e base territorial oficial (Decreto nº 32.791/2020). Gerado em {meta?.gerado_em ?? '—'}.
+                  Fonte: TSE Dados Abertos (Salvador/BA, 2024, 1┬║ turno) e base territorial oficial (Decreto n┬║ 32.791/2020). Gerado em {meta?.gerado_em ?? 'ÔÇö'}.
                 </p>
               </details>
             )}
@@ -1656,7 +1683,7 @@ function App() {
               <h2>{rankingBairro.bairro.nome}</h2>
               {!rankingOculto && (
                 <span className="ranking-sub">
-                  {rankingCargo.nome} · {nf.format(rankingBairro.total)} votos válidos
+                  {rankingCargo.nome} ┬À {nf.format(rankingBairro.total)} votos v├ílidos
                 </span>
               )}
             </div>
@@ -1678,7 +1705,7 @@ function App() {
                 title="Fechar ranking"
                 aria-label="Fechar ranking"
               >
-                ×
+                ├ù
               </button>
             </div>
           </header>
@@ -1698,12 +1725,12 @@ function App() {
                   className={rankingAba === 'partidos' ? 'ativo' : ''}
                   onClick={() => setRankingAba('partidos')}
                 >
-                  {rankingCargo.id === '13' ? 'Agremiações' : 'Partidos'}
+                  {rankingCargo.id === '13' ? 'Agremia├º├Áes' : 'Partidos'}
                 </button>
               </div>
 
               {rankingBairro.total === 0 ? (
-                <p className="ranking-empty">Sem local de votação atribuído a este bairro.</p>
+                <p className="ranking-empty">Sem local de vota├º├úo atribu├¡do a este bairro.</p>
               ) : rankingAba === 'candidatos' ? (
                 rankingBairro.candidatos.length === 0 ? (
                   <p className="ranking-empty">Nenhum candidato recebeu votos neste bairro.</p>
@@ -1737,13 +1764,13 @@ function App() {
                     </ol>
                     <p className="ranking-count">
                       {nf.format(rankingBairro.candidatos.length)} candidato
-                      {rankingBairro.candidatos.length === 1 ? '' : 's'} com voto · clique para ver no mapa
+                      {rankingBairro.candidatos.length === 1 ? '' : 's'} com voto ┬À clique para ver no mapa
                     </p>
                   </>
                 )
               ) : rankingBairro.partidos.length === 0 ? (
                 <p className="ranking-empty">
-                  Nenhum{rankingCargo.id === '13' ? 'a agremiação recebeu' : ' partido recebeu'} votos neste bairro.
+                  Nenhum{rankingCargo.id === '13' ? 'a agremia├º├úo recebeu' : ' partido recebeu'} votos neste bairro.
                 </p>
               ) : (
                 <>
@@ -1756,14 +1783,14 @@ function App() {
                           <span className="ranking-nome">
                             <strong>{item.sigla}</strong>
                             <span>
-                              {rankingCargo.id === '13' && item.tipo === 'FEDERAÇÃO'
-                                ? `${item.nome} · federação`
+                              {rankingCargo.id === '13' && item.tipo === 'FEDERA├ç├âO'
+                                ? `${item.nome} ┬À federa├º├úo`
                                 : rankingCargo.id === '13'
                                   ? 'partido'
                                   : item.nome}
-                              {' · '}
+                              {' ┬À '}
                               {item.candidatos} candidato{item.candidatos === 1 ? '' : 's'}
-                              {item.legenda > 0 ? ` · legenda ${nf.format(item.legenda)}` : ''}
+                              {item.legenda > 0 ? ` ┬À legenda ${nf.format(item.legenda)}` : ''}
                             </span>
                           </span>
                           <span className="ranking-votos">
@@ -1776,10 +1803,10 @@ function App() {
                   </ol>
                   <p className="ranking-count">
                     {nf.format(rankingBairro.partidos.length)}{' '}
-                    {rankingCargo.id === '13' ? 'agremiação' : 'partido'}
-                    {rankingBairro.partidos.length === 1 ? '' : rankingCargo.id === '13' ? 'ões' : 's'}
+                    {rankingCargo.id === '13' ? 'agremia├º├úo' : 'partido'}
+                    {rankingBairro.partidos.length === 1 ? '' : rankingCargo.id === '13' ? '├Áes' : 's'}
                     {rankingCargo.id === '13'
-                      ? ' · votos nominais por federação/partido; cadeiras proporcionais vão para a agremiação'
+                      ? ' ┬À votos nominais por federa├º├úo/partido; cadeiras proporcionais v├úo para a agremia├º├úo'
                       : ''}
                   </p>
                 </>
