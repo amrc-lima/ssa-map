@@ -433,6 +433,38 @@ select {
   transform: rotate(45deg);
 }
 
+.party-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.party-mark-txt {
+  position: relative;
+  z-index: 0;
+}
+
+.party-mark-img {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+  padding: 7%;
+  box-sizing: border-box;
+}
+
 .ss-badge,
 .status-chip {
   display: inline-flex;
@@ -603,6 +635,16 @@ select {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.avatar-inner.contem {
+  background: #fff;
+}
+
+.avatar-inner.contem img {
+  object-fit: contain;
+  padding: 12%;
+  box-sizing: border-box;
 }
 
 .candidato-info,

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { PartyLogo } from './PartyLogo'
 
 export type SearchOption = {
   value: string
@@ -7,6 +8,15 @@ export type SearchOption = {
   color?: string
   badge?: string
   tone?: string
+  foto?: string | null
+  logo?: string | null
+}
+
+function preloadFoto(src?: string | null) {
+  if (!src) return
+  const img = new Image()
+  img.fetchPriority = 'high'
+  img.src = src
 }
 
 type Props = {
@@ -53,6 +63,7 @@ export function SearchSelect({
 
   useEffect(() => {
     if (!open) return
+    preloadFoto(filtered[highlight]?.foto)
     const timer = window.setTimeout(() => inputRef.current?.focus(), 0)
     const onClick = (event: MouseEvent) => {
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
@@ -64,7 +75,7 @@ export function SearchSelect({
       window.clearTimeout(timer)
       document.removeEventListener('mousedown', onClick)
     }
-  }, [open])
+  }, [open, filtered, highlight])
 
   const toggle = () => {
     if (!open) {
@@ -89,8 +100,12 @@ export function SearchSelect({
         aria-expanded={open}
         onClick={toggle}
       >
-        {selected?.color && (
-          <span className="ss-swatch" style={{ background: selected.color }} aria-hidden />
+        {selected?.logo ? (
+          <PartyLogo sigla={selected.logo} color={selected.color ?? '#64748b'} size={20} />
+        ) : (
+          selected?.color && (
+            <span className="ss-swatch" style={{ background: selected.color }} aria-hidden />
+          )
         )}
         {selected?.badge && (
           <span className={`ss-badge ss-badge-${selected.tone ?? 'nao'}`}>
@@ -146,14 +161,21 @@ export function SearchSelect({
                 ]
                   .filter(Boolean)
                   .join(' ')}
-                onMouseEnter={() => setHighlight(index)}
+                onMouseEnter={() => {
+                  setHighlight(index)
+                  preloadFoto(option.foto)
+                }}
                 onMouseDown={(event) => {
                   event.preventDefault()
                   choose(option.value)
                 }}
               >
-                {option.color && (
-                  <span className="ss-swatch" style={{ background: option.color }} aria-hidden />
+                {option.logo ? (
+                  <PartyLogo sigla={option.logo} color={option.color ?? '#64748b'} size={20} />
+                ) : (
+                  option.color && (
+                    <span className="ss-swatch" style={{ background: option.color }} aria-hidden />
+                  )
                 )}
                 {option.badge && (
                   <span className={`ss-badge ss-badge-${option.tone ?? 'nao'}`}>
